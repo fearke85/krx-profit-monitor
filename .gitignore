@@ -1,0 +1,9 @@
+node_modules/
+data/
+web/dist/
+server/dist/
+.env
+*.log
+
+# Configurações locais/pessoais do Claude Code
+.claude/settings.local.json
