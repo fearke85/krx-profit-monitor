@@ -12,6 +12,9 @@ preço da **nonkyc** (único exchange que lista a moeda).
 A wallet é informada **no próprio dashboard** (não fica em arquivo de configuração) e é salva
 localmente em `data/`, que não vai para o repositório.
 
+<img width="1337" height="1112" alt="image" src="https://github.com/user-attachments/assets/3f1db326-ac3a-4bd3-a3a3-5dcaa4d15497" />
+
+
 ## Como funciona
 
 - **Fonte on-chain:** API do explorer Keryx (`https://keryx-labs.com/api/v1`).
