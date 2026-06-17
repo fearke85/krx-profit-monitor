@@ -1,0 +1,17 @@
+services:
+  server:
+    build:
+      context: ./server
+    env_file: .env
+    volumes:
+      - ./data:/data
+    restart: unless-stopped
+
+  web:
+    build:
+      context: ./web
+    ports:
+      - "80:80"
+    depends_on:
+      - server
+    restart: unless-stopped
