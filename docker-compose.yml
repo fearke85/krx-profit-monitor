@@ -1,17 +1,16 @@
 services:
-  server:
+  app:
     build:
-      context: ./server
-    env_file: .env
+      context: .
+    ports:
+      - "5010:4000"
     volumes:
       - ./data:/data
+    env_file: .env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     restart: unless-stopped
-
-  web:
-    build:
-      context: ./web
-    ports:
-      - "80:80"
-    depends_on:
-      - server
-    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 256m
