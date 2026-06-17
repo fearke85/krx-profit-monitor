@@ -11,6 +11,7 @@ import {
   applyTxDetail,
   txCount,
   wipeTxs,
+  wipePoolData,
   getMeta,
   setMeta,
   snapshotPrice,
@@ -139,6 +140,7 @@ function reconcileAddress(address: string): void {
   if (synced !== address) {
     console.log(`[sync] wallet alterada (${synced ?? 'nenhuma'} -> ${address}); recarregando dados.`);
     wipeTxs();
+    wipePoolData(); // não misturar histórico de pool de wallets diferentes
     setMeta('synced_address', address);
     setMeta('backfill_done', '0');
     syncStatus.backfillDone = false;

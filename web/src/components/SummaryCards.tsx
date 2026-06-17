@@ -1,5 +1,6 @@
 import type { Summary } from '../api';
-import { fmtKrx, fmtUsdt, fmtPrice, fmtTime } from '../format';
+import { fmtKrx, fmtUsdt, fmtPrice, fmtTime, fmtNum } from '../format';
+import { useSettings } from '../settings';
 
 function Card({ title, value, sub }: { title: string; value: string; sub?: string }) {
   return (
@@ -12,6 +13,7 @@ function Card({ title, value, sub }: { title: string; value: string; sub?: strin
 }
 
 export default function SummaryCards({ summary }: { summary: Summary }) {
+  const { t } = useSettings();
   const { today, sync, balance_krx, balance_usdt, price_usd } = summary;
   if (!today || !sync || balance_krx == null || balance_usdt == null) return null;
   const syncing = !sync.backfill_done || sync.pending_timestamps > 0;
@@ -20,36 +22,39 @@ export default function SummaryCards({ summary }: { summary: Summary }) {
     <>
       <div className="cards">
         <Card
-          title="Recebido hoje (KRX)"
+          title={t('summary.todayReceived')}
           value={`${fmtKrx(today.received_krx)} KRX`}
-          sub={`≈ ${fmtUsdt(today.est_usdt)} USDT · ${today.tx_count} txs · ${today.day}`}
+          sub={t('summary.todaySub', {
+            usdt: fmtUsdt(today.est_usdt),
+            txs: today.tx_count,
+            day: today.day,
+          })}
         />
         <Card
-          title="Saldo total"
+          title={t('summary.totalBalance')}
           value={`${fmtKrx(balance_krx)} KRX`}
-          sub={`≈ ${fmtUsdt(balance_usdt)} USDT`}
+          sub={t('summary.totalBalanceSub', { usdt: fmtUsdt(balance_usdt) })}
         />
         <Card
-          title="Preço KRX (nonkyc)"
+          title={t('summary.price')}
           value={`${fmtPrice(price_usd)} USDT`}
-          sub="lastPrice KRX/USDT"
+          sub={t('summary.priceSub')}
         />
       </div>
 
       <div className={`sync-bar ${syncing ? 'sync-active' : ''}`}>
         {sync.backfill_done ? (
           <>
-            Sincronizado · {sync.ingested_txs.toLocaleString('pt-BR')} txs
-            {sync.pending_timestamps > 0
-              ? ` · resolvendo horários (${sync.pending_timestamps} pendentes)`
-              : ''}
-            {' · '}última sync: {fmtTime(sync.last_sync_ms)}
+            {t('summary.synced', { txs: fmtNum(sync.ingested_txs) })}
+            {sync.pending_timestamps > 0 ? t('summary.resolving', { n: sync.pending_timestamps }) : ''}
+            {t('summary.lastSync', { time: fmtTime(sync.last_sync_ms) })}
           </>
         ) : (
-          <>
-            Backfill em andamento ({sync.phase})… {sync.ingested_txs.toLocaleString('pt-BR')}
-            {sync.total_txs ? `/${sync.total_txs.toLocaleString('pt-BR')}` : ''} txs
-          </>
+          t('summary.backfill', {
+            phase: sync.phase,
+            ingested: fmtNum(sync.ingested_txs),
+            total: sync.total_txs ? `/${fmtNum(sync.total_txs)}` : '',
+          })
         )}
       </div>
     </>

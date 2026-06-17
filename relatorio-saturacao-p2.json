@@ -1,0 +1,1043 @@
+{
+  "address": "keryx:qrwhj8cdxgv04pfsjpcqsl9s9urh7nsyyca2ddfhpk96llje6tkc6xhtgu62p",
+  "startedAt": "2026-06-17T15:11:07.842Z",
+  "finishedAt": "2026-06-17T15:14:21.932Z",
+  "diagnosis": {
+    "status": 200,
+    "latencyMs": 1175,
+    "ok": true,
+    "parseOk": true,
+    "headers": {
+      "connection": "keep-alive",
+      "content-length": "19658",
+      "content-type": "application/json; charset=utf-8",
+      "date": "Wed, 17 Jun 2026 15:11:07 GMT",
+      "etag": "W/\"4cca-Xq6yXtGS8iQ/2b51xd74vJxe9O8\"",
+      "server": "nginx/1.18.0 (Ubuntu)",
+      "vary": "Accept-Encoding",
+      "x-content-type-options": "nosniff",
+      "x-frame-options": "SAMEORIGIN",
+      "x-powered-by": "Express",
+      "x-xss-protection": "1; mode=block"
+    },
+    "data": {
+      "hashrateGhs": 5.004906312,
+      "balanceKrx": 2196.2369827,
+      "workersOnline": 5
+    }
+  },
+  "intervals": [
+    {
+      "intervalMs": 5000,
+      "cycles": [
+        {
+          "status": 200,
+          "latencyMs": 1015,
+          "ok": true,
+          "parseOk": true,
+          "headers": {
+            "connection": "keep-alive",
+            "content-length": "19648",
+            "content-type": "application/json; charset=utf-8",
+            "date": "Wed, 17 Jun 2026 15:12:14 GMT",
+            "etag": "W/\"4cc0-V+UBRfMNO1bN12+qkebnCiF1UTs\"",
+            "server": "nginx/1.18.0 (Ubuntu)",
+            "vary": "Accept-Encoding",
+            "x-content-type-options": "nosniff",
+            "x-frame-options": "SAMEORIGIN",
+            "x-powered-by": "Express",
+            "x-xss-protection": "1; mode=block"
+          },
+          "data": {
+            "hashrateGhs": 5.052628899,
+            "balanceKrx": 2220.8020726,
+            "workersOnline": 5
+          }
+        },
+        {
+          "status": 200,
+          "latencyMs": 1015,
+          "ok": true,
+          "parseOk": true,
+          "headers": {
+            "connection": "keep-alive",
+            "content-length": "19648",
+            "content-type": "application/json; charset=utf-8",
+            "date": "Wed, 17 Jun 2026 15:12:20 GMT",
+            "etag": "W/\"4cc0-V+UBRfMNO1bN12+qkebnCiF1UTs\"",
+            "server": "nginx/1.18.0 (Ubuntu)",
+            "vary": "Accept-Encoding",
+            "x-content-type-options": "nosniff",
+            "x-frame-options": "SAMEORIGIN",
+            "x-powered-by": "Express",
+            "x-xss-protection": "1; mode=block"
+          },
+          "data": {
+            "hashrateGhs": 5.052628899,
+            "balanceKrx": 2220.8020726,
+            "workersOnline": 5
+          }
+        },
+        {
+          "status": 200,
+          "latencyMs": 1040,
+          "ok": true,
+          "parseOk": true,
+          "headers": {
+            "connection": "keep-alive",
+            "content-length": "19648",
+            "content-type": "application/json; charset=utf-8",
+            "date": "Wed, 17 Jun 2026 15:12:26 GMT",
+            "etag": "W/\"4cc0-V+UBRfMNO1bN12+qkebnCiF1UTs\"",
+            "server": "nginx/1.18.0 (Ubuntu)",
+            "vary": "Accept-Encoding",
+            "x-content-type-options": "nosniff",
+            "x-frame-options": "SAMEORIGIN",
+            "x-powered-by": "Express",
+            "x-xss-protection": "1; mode=block"
+          },
+          "data": {
+            "hashrateGhs": 5.052628899,
+            "balanceKrx": 2220.8020726,
+            "workersOnline": 5
+          }
+        },
+        {
+          "status": 200,
+          "latencyMs": 1083,
+          "ok": true,
+          "parseOk": true,
+          "headers": {
+            "connection": "keep-alive",
+            "content-length": "19650",
+            "content-type": "application/json; charset=utf-8",
+            "date": "Wed, 17 Jun 2026 15:12:32 GMT",
+            "etag": "W/\"4cc2-jayigMjCdy5jW4vqnBp8on1PT5w\"",
+            "server": "nginx/1.18.0 (Ubuntu)",
+            "vary": "Accept-Encoding",
+            "x-content-type-options": "nosniff",
+            "x-frame-options": "SAMEORIGIN",
+            "x-powered-by": "Express",
+            "x-xss-protection": "1; mode=block"
+          },
+          "data": {
+            "hashrateGhs": 5.07052487,
+            "balanceKrx": 2220.8020726,
+            "workersOnline": 5
+          }
+        },
+        {
+          "status": 200,
+          "latencyMs": 991,
+          "ok": true,
+          "parseOk": true,
+          "headers": {
+            "connection": "keep-alive",
+            "content-length": "19650",
+            "content-type": "application/json; charset=utf-8",
+            "date": "Wed, 17 Jun 2026 15:12:38 GMT",
+            "etag": "W/\"4cc2-jayigMjCdy5jW4vqnBp8on1PT5w\"",
+            "server": "nginx/1.18.0 (Ubuntu)",
+            "vary": "Accept-Encoding",
+            "x-content-type-options": "nosniff",
+            "x-frame-options": "SAMEORIGIN",
+            "x-powered-by": "Express",
+            "x-xss-protection": "1; mode=block"
+          },
+          "data": {
+            "hashrateGhs": 5.07052487,
+            "balanceKrx": 2220.8020726,
+            "workersOnline": 5
+          }
+        },
+        {
+          "status": 200,
+          "latencyMs": 1140,
+          "ok": true,
+          "parseOk": true,
+          "headers": {
+            "connection": "keep-alive",
+            "content-length": "19650",
+            "content-type": "application/json; charset=utf-8",
+            "date": "Wed, 17 Jun 2026 15:12:44 GMT",
+            "etag": "W/\"4cc2-jayigMjCdy5jW4vqnBp8on1PT5w\"",
+            "server": "nginx/1.18.0 (Ubuntu)",
+            "vary": "Accept-Encoding",
+            "x-content-type-options": "nosniff",
+            "x-frame-options": "SAMEORIGIN",
+            "x-powered-by": "Express",
+            "x-xss-protection": "1; mode=block"
+          },
+          "data": {
+            "hashrateGhs": 5.07052487,
+            "balanceKrx": 2220.8020726,
+            "workersOnline": 5
+          }
+        },
+        {
+          "status": 200,
+          "latencyMs": 1186,
+          "ok": true,
+          "parseOk": true,
+          "headers": {
+            "connection": "keep-alive",
+            "content-length": "19650",
+            "content-type": "application/json; charset=utf-8",
+            "date": "Wed, 17 Jun 2026 15:12:50 GMT",
+            "etag": "W/\"4cc2-CHYGRGl7KVAj6rgxhuCxf8pR6g4\"",
+            "server": "nginx/1.18.0 (Ubuntu)",
+            "vary": "Accept-Encoding",
+            "x-content-type-options": "nosniff",
+            "x-frame-options": "SAMEORIGIN",
+            "x-powered-by": "Express",
+            "x-xss-protection": "1; mode=block"
+          },
+          "data": {
+            "hashrateGhs": 5.094386163,
+            "balanceKrx": 2220.8020726,
+            "workersOnline": 5
+          }
+        },
+        {
+          "status": 200,
+          "latencyMs": 1017,
+          "ok": true,
+          "parseOk": true,
+          "headers": {
+            "connection": "keep-alive",
+            "content-length": "19650",
+            "content-type": "application/json; charset=utf-8",
+            "date": "Wed, 17 Jun 2026 15:12:56 GMT",
+            "etag": "W/\"4cc2-CHYGRGl7KVAj6rgxhuCxf8pR6g4\"",
+            "server": "nginx/1.18.0 (Ubuntu)",
+            "vary": "Accept-Encoding",
+            "x-content-type-options": "nosniff",
+            "x-frame-options": "SAMEORIGIN",
+            "x-powered-by": "Express",
+            "x-xss-protection": "1; mode=block"
+          },
+          "data": {
+            "hashrateGhs": 5.094386163,
+            "balanceKrx": 2220.8020726,
+            "workersOnline": 5
+          }
+        },
+        {
+          "status": 200,
+          "latencyMs": 1220,
+          "ok": true,
+          "parseOk": true,
+          "headers": {
+            "connection": "keep-alive",
+            "content-length": "19650",
+            "content-type": "application/json; charset=utf-8",
+            "date": "Wed, 17 Jun 2026 15:13:02 GMT",
+            "etag": "W/\"4cc2-CHYGRGl7KVAj6rgxhuCxf8pR6g4\"",
+            "server": "nginx/1.18.0 (Ubuntu)",
+            "vary": "Accept-Encoding",
+            "x-content-type-options": "nosniff",
+            "x-frame-options": "SAMEORIGIN",
+            "x-powered-by": "Express",
+            "x-xss-protection": "1; mode=block"
+          },
+          "data": {
+            "hashrateGhs": 5.094386163,
+            "balanceKrx": 2220.8020726,
+            "workersOnline": 5
+          }
+        },
+        {
+          "status": 200,
+          "latencyMs": 997,
+          "ok": true,
+          "parseOk": true,
+          "headers": {
+            "connection": "keep-alive",
+            "content-length": "19649",
+            "content-type": "application/json; charset=utf-8",
+            "date": "Wed, 17 Jun 2026 15:13:08 GMT",
+            "etag": "W/\"4cc1-wUXsVSIcEdx7CydZqLietb6hcI8\"",
+            "server": "nginx/1.18.0 (Ubuntu)",
+            "vary": "Accept-Encoding",
+            "x-content-type-options": "nosniff",
+            "x-frame-options": "SAMEORIGIN",
+            "x-powered-by": "Express",
+            "x-xss-protection": "1; mode=block"
+          },
+          "data": {
+            "hashrateGhs": 5.082455516,
+            "balanceKrx": 2220.8020726,
+            "workersOnline": 5
+          }
+        }
+      ],
+      "successCount": 10,
+      "failCount": 0,
+      "latencyMin": 991,
+      "latencyMax": 1220,
+      "latencyAvg": 1070.4,
+      "latencyP99": 1220,
+      "dataChangedPct": 33.33333333333333,
+      "rateLimitHeaders": false
+    },
+    {
+      "intervalMs": 3000,
+      "cycles": [
+        {
+          "status": 200,
+          "latencyMs": 994,
+          "ok": true,
+          "parseOk": true,
+          "headers": {
+            "connection": "keep-alive",
+            "content-length": "19649",
+            "content-type": "application/json; charset=utf-8",
+            "date": "Wed, 17 Jun 2026 15:13:09 GMT",
+            "etag": "W/\"4cc1-wUXsVSIcEdx7CydZqLietb6hcI8\"",
+            "server": "nginx/1.18.0 (Ubuntu)",
+            "vary": "Accept-Encoding",
+            "x-content-type-options": "nosniff",
+            "x-frame-options": "SAMEORIGIN",
+            "x-powered-by": "Express",
+            "x-xss-protection": "1; mode=block"
+          },
+          "data": {
+            "hashrateGhs": 5.082455516,
+            "balanceKrx": 2220.8020726,
+            "workersOnline": 5
+          }
+        },
+        {
+          "status": 200,
+          "latencyMs": 528,
+          "ok": true,
+          "parseOk": true,
+          "headers": {
+            "connection": "keep-alive",
+            "content-length": "19649",
+            "content-type": "application/json; charset=utf-8",
+            "date": "Wed, 17 Jun 2026 15:13:13 GMT",
+            "etag": "W/\"4cc1-wUXsVSIcEdx7CydZqLietb6hcI8\"",
+            "server": "nginx/1.18.0 (Ubuntu)",
+            "vary": "Accept-Encoding",
+            "x-content-type-options": "nosniff",
+            "x-frame-options": "SAMEORIGIN",
+            "x-powered-by": "Express",
+            "x-xss-protection": "1; mode=block"
+          },
+          "data": {
+            "hashrateGhs": 5.082455516,
+            "balanceKrx": 2220.8020726,
+            "workersOnline": 5
+          }
+        },
+        {
+          "status": 200,
+          "latencyMs": 545,
+          "ok": true,
+          "parseOk": true,
+          "headers": {
+            "connection": "keep-alive",
+            "content-length": "19649",
+            "content-type": "application/json; charset=utf-8",
+            "date": "Wed, 17 Jun 2026 15:13:17 GMT",
+            "etag": "W/\"4cc1-wUXsVSIcEdx7CydZqLietb6hcI8\"",
+            "server": "nginx/1.18.0 (Ubuntu)",
+            "vary": "Accept-Encoding",
+            "x-content-type-options": "nosniff",
+            "x-frame-options": "SAMEORIGIN",
+            "x-powered-by": "Express",
+            "x-xss-protection": "1; mode=block"
+          },
+          "data": {
+            "hashrateGhs": 5.082455516,
+            "balanceKrx": 2220.8020726,
+            "workersOnline": 5
+          }
+        },
+        {
+          "status": 200,
+          "latencyMs": 535,
+          "ok": true,
+          "parseOk": true,
+          "headers": {
+            "connection": "keep-alive",
+            "content-length": "19649",
+            "content-type": "application/json; charset=utf-8",
+            "date": "Wed, 17 Jun 2026 15:13:20 GMT",
+            "etag": "W/\"4cc1-wUXsVSIcEdx7CydZqLietb6hcI8\"",
+            "server": "nginx/1.18.0 (Ubuntu)",
+            "vary": "Accept-Encoding",
+            "x-content-type-options": "nosniff",
+            "x-frame-options": "SAMEORIGIN",
+            "x-powered-by": "Express",
+            "x-xss-protection": "1; mode=block"
+          },
+          "data": {
+            "hashrateGhs": 5.082455516,
+            "balanceKrx": 2220.8020726,
+            "workersOnline": 5
+          }
+        },
+        {
+          "status": 200,
+          "latencyMs": 529,
+          "ok": true,
+          "parseOk": true,
+          "headers": {
+            "connection": "keep-alive",
+            "content-length": "19645",
+            "content-type": "application/json; charset=utf-8",
+            "date": "Wed, 17 Jun 2026 15:13:24 GMT",
+            "etag": "W/\"4cbd-rB8pnFk/iGmQjwAW3SE28a7TssA\"",
+            "server": "nginx/1.18.0 (Ubuntu)",
+            "vary": "Accept-Encoding",
+            "x-content-type-options": "nosniff",
+            "x-frame-options": "SAMEORIGIN",
+            "x-powered-by": "Express",
+            "x-xss-protection": "1; mode=block"
+          },
+          "data": {
+            "hashrateGhs": 5.088420839,
+            "balanceKrx": 2222.13046,
+            "workersOnline": 5
+          }
+        },
+        {
+          "status": 200,
+          "latencyMs": 568,
+          "ok": true,
+          "parseOk": true,
+          "headers": {
+            "connection": "keep-alive",
+            "content-length": "19645",
+            "content-type": "application/json; charset=utf-8",
+            "date": "Wed, 17 Jun 2026 15:13:27 GMT",
+            "etag": "W/\"4cbd-rB8pnFk/iGmQjwAW3SE28a7TssA\"",
+            "server": "nginx/1.18.0 (Ubuntu)",
+            "vary": "Accept-Encoding",
+            "x-content-type-options": "nosniff",
+            "x-frame-options": "SAMEORIGIN",
+            "x-powered-by": "Express",
+            "x-xss-protection": "1; mode=block"
+          },
+          "data": {
+            "hashrateGhs": 5.088420839,
+            "balanceKrx": 2222.13046,
+            "workersOnline": 5
+          }
+        },
+        {
+          "status": 200,
+          "latencyMs": 522,
+          "ok": true,
+          "parseOk": true,
+          "headers": {
+            "connection": "keep-alive",
+            "content-length": "19645",
+            "content-type": "application/json; charset=utf-8",
+            "date": "Wed, 17 Jun 2026 15:13:31 GMT",
+            "etag": "W/\"4cbd-rB8pnFk/iGmQjwAW3SE28a7TssA\"",
+            "server": "nginx/1.18.0 (Ubuntu)",
+            "vary": "Accept-Encoding",
+            "x-content-type-options": "nosniff",
+            "x-frame-options": "SAMEORIGIN",
+            "x-powered-by": "Express",
+            "x-xss-protection": "1; mode=block"
+          },
+          "data": {
+            "hashrateGhs": 5.088420839,
+            "balanceKrx": 2222.13046,
+            "workersOnline": 5
+          }
+        },
+        {
+          "status": 200,
+          "latencyMs": 537,
+          "ok": true,
+          "parseOk": true,
+          "headers": {
+            "connection": "keep-alive",
+            "content-length": "19645",
+            "content-type": "application/json; charset=utf-8",
+            "date": "Wed, 17 Jun 2026 15:13:34 GMT",
+            "etag": "W/\"4cbd-rB8pnFk/iGmQjwAW3SE28a7TssA\"",
+            "server": "nginx/1.18.0 (Ubuntu)",
+            "vary": "Accept-Encoding",
+            "x-content-type-options": "nosniff",
+            "x-frame-options": "SAMEORIGIN",
+            "x-powered-by": "Express",
+            "x-xss-protection": "1; mode=block"
+          },
+          "data": {
+            "hashrateGhs": 5.088420839,
+            "balanceKrx": 2222.13046,
+            "workersOnline": 5
+          }
+        },
+        {
+          "status": 200,
+          "latencyMs": 523,
+          "ok": true,
+          "parseOk": true,
+          "headers": {
+            "connection": "keep-alive",
+            "content-length": "19659",
+            "content-type": "application/json; charset=utf-8",
+            "date": "Wed, 17 Jun 2026 15:13:38 GMT",
+            "etag": "W/\"4ccb-spwPpSHuJ3rtq2mIiVRH6NGdPUA\"",
+            "server": "nginx/1.18.0 (Ubuntu)",
+            "vary": "Accept-Encoding",
+            "x-content-type-options": "nosniff",
+            "x-frame-options": "SAMEORIGIN",
+            "x-powered-by": "Express",
+            "x-xss-protection": "1; mode=block"
+          },
+          "data": {
+            "hashrateGhs": 5.094386163,
+            "balanceKrx": 2222.6904872,
+            "workersOnline": 5
+          }
+        },
+        {
+          "status": 200,
+          "latencyMs": 526,
+          "ok": true,
+          "parseOk": true,
+          "headers": {
+            "connection": "keep-alive",
+            "content-length": "19659",
+            "content-type": "application/json; charset=utf-8",
+            "date": "Wed, 17 Jun 2026 15:13:41 GMT",
+            "etag": "W/\"4ccb-spwPpSHuJ3rtq2mIiVRH6NGdPUA\"",
+            "server": "nginx/1.18.0 (Ubuntu)",
+            "vary": "Accept-Encoding",
+            "x-content-type-options": "nosniff",
+            "x-frame-options": "SAMEORIGIN",
+            "x-powered-by": "Express",
+            "x-xss-protection": "1; mode=block"
+          },
+          "data": {
+            "hashrateGhs": 5.094386163,
+            "balanceKrx": 2222.6904872,
+            "workersOnline": 5
+          }
+        }
+      ],
+      "successCount": 10,
+      "failCount": 0,
+      "latencyMin": 522,
+      "latencyMax": 994,
+      "latencyAvg": 580.7,
+      "latencyP99": 994,
+      "dataChangedPct": 22.22222222222222,
+      "rateLimitHeaders": false
+    },
+    {
+      "intervalMs": 2000,
+      "cycles": [
+        {
+          "status": 200,
+          "latencyMs": 1004,
+          "ok": true,
+          "parseOk": true,
+          "headers": {
+            "connection": "keep-alive",
+            "content-length": "19659",
+            "content-type": "application/json; charset=utf-8",
+            "date": "Wed, 17 Jun 2026 15:13:42 GMT",
+            "etag": "W/\"4ccb-spwPpSHuJ3rtq2mIiVRH6NGdPUA\"",
+            "server": "nginx/1.18.0 (Ubuntu)",
+            "vary": "Accept-Encoding",
+            "x-content-type-options": "nosniff",
+            "x-frame-options": "SAMEORIGIN",
+            "x-powered-by": "Express",
+            "x-xss-protection": "1; mode=block"
+          },
+          "data": {
+            "hashrateGhs": 5.094386163,
+            "balanceKrx": 2222.6904872,
+            "workersOnline": 5
+          }
+        },
+        {
+          "status": 200,
+          "latencyMs": 524,
+          "ok": true,
+          "parseOk": true,
+          "headers": {
+            "connection": "keep-alive",
+            "content-length": "19659",
+            "content-type": "application/json; charset=utf-8",
+            "date": "Wed, 17 Jun 2026 15:13:45 GMT",
+            "etag": "W/\"4ccb-spwPpSHuJ3rtq2mIiVRH6NGdPUA\"",
+            "server": "nginx/1.18.0 (Ubuntu)",
+            "vary": "Accept-Encoding",
+            "x-content-type-options": "nosniff",
+            "x-frame-options": "SAMEORIGIN",
+            "x-powered-by": "Express",
+            "x-xss-protection": "1; mode=block"
+          },
+          "data": {
+            "hashrateGhs": 5.094386163,
+            "balanceKrx": 2222.6904872,
+            "workersOnline": 5
+          }
+        },
+        {
+          "status": 200,
+          "latencyMs": 535,
+          "ok": true,
+          "parseOk": true,
+          "headers": {
+            "connection": "keep-alive",
+            "content-length": "19659",
+            "content-type": "application/json; charset=utf-8",
+            "date": "Wed, 17 Jun 2026 15:13:47 GMT",
+            "etag": "W/\"4ccb-spwPpSHuJ3rtq2mIiVRH6NGdPUA\"",
+            "server": "nginx/1.18.0 (Ubuntu)",
+            "vary": "Accept-Encoding",
+            "x-content-type-options": "nosniff",
+            "x-frame-options": "SAMEORIGIN",
+            "x-powered-by": "Express",
+            "x-xss-protection": "1; mode=block"
+          },
+          "data": {
+            "hashrateGhs": 5.094386163,
+            "balanceKrx": 2222.6904872,
+            "workersOnline": 5
+          }
+        },
+        {
+          "status": 200,
+          "latencyMs": 520,
+          "ok": true,
+          "parseOk": true,
+          "headers": {
+            "connection": "keep-alive",
+            "content-length": "19659",
+            "content-type": "application/json; charset=utf-8",
+            "date": "Wed, 17 Jun 2026 15:13:50 GMT",
+            "etag": "W/\"4ccb-spwPpSHuJ3rtq2mIiVRH6NGdPUA\"",
+            "server": "nginx/1.18.0 (Ubuntu)",
+            "vary": "Accept-Encoding",
+            "x-content-type-options": "nosniff",
+            "x-frame-options": "SAMEORIGIN",
+            "x-powered-by": "Express",
+            "x-xss-protection": "1; mode=block"
+          },
+          "data": {
+            "hashrateGhs": 5.094386163,
+            "balanceKrx": 2222.6904872,
+            "workersOnline": 5
+          }
+        },
+        {
+          "status": 200,
+          "latencyMs": 524,
+          "ok": true,
+          "parseOk": true,
+          "headers": {
+            "connection": "keep-alive",
+            "content-length": "19659",
+            "content-type": "application/json; charset=utf-8",
+            "date": "Wed, 17 Jun 2026 15:13:52 GMT",
+            "etag": "W/\"4ccb-+gcOLpaArfuTJ262sgGR26ZTKWg\"",
+            "server": "nginx/1.18.0 (Ubuntu)",
+            "vary": "Accept-Encoding",
+            "x-content-type-options": "nosniff",
+            "x-frame-options": "SAMEORIGIN",
+            "x-powered-by": "Express",
+            "x-xss-protection": "1; mode=block"
+          },
+          "data": {
+            "hashrateGhs": 5.064559545,
+            "balanceKrx": 2224.8089069,
+            "workersOnline": 5
+          }
+        },
+        {
+          "status": 200,
+          "latencyMs": 527,
+          "ok": true,
+          "parseOk": true,
+          "headers": {
+            "connection": "keep-alive",
+            "content-length": "19659",
+            "content-type": "application/json; charset=utf-8",
+            "date": "Wed, 17 Jun 2026 15:13:55 GMT",
+            "etag": "W/\"4ccb-+gcOLpaArfuTJ262sgGR26ZTKWg\"",
+            "server": "nginx/1.18.0 (Ubuntu)",
+            "vary": "Accept-Encoding",
+            "x-content-type-options": "nosniff",
+            "x-frame-options": "SAMEORIGIN",
+            "x-powered-by": "Express",
+            "x-xss-protection": "1; mode=block"
+          },
+          "data": {
+            "hashrateGhs": 5.064559545,
+            "balanceKrx": 2224.8089069,
+            "workersOnline": 5
+          }
+        },
+        {
+          "status": 200,
+          "latencyMs": 539,
+          "ok": true,
+          "parseOk": true,
+          "headers": {
+            "connection": "keep-alive",
+            "content-length": "19659",
+            "content-type": "application/json; charset=utf-8",
+            "date": "Wed, 17 Jun 2026 15:13:58 GMT",
+            "etag": "W/\"4ccb-+gcOLpaArfuTJ262sgGR26ZTKWg\"",
+            "server": "nginx/1.18.0 (Ubuntu)",
+            "vary": "Accept-Encoding",
+            "x-content-type-options": "nosniff",
+            "x-frame-options": "SAMEORIGIN",
+            "x-powered-by": "Express",
+            "x-xss-protection": "1; mode=block"
+          },
+          "data": {
+            "hashrateGhs": 5.064559545,
+            "balanceKrx": 2224.8089069,
+            "workersOnline": 5
+          }
+        },
+        {
+          "status": 200,
+          "latencyMs": 553,
+          "ok": true,
+          "parseOk": true,
+          "headers": {
+            "connection": "keep-alive",
+            "content-length": "19659",
+            "content-type": "application/json; charset=utf-8",
+            "date": "Wed, 17 Jun 2026 15:14:00 GMT",
+            "etag": "W/\"4ccb-+gcOLpaArfuTJ262sgGR26ZTKWg\"",
+            "server": "nginx/1.18.0 (Ubuntu)",
+            "vary": "Accept-Encoding",
+            "x-content-type-options": "nosniff",
+            "x-frame-options": "SAMEORIGIN",
+            "x-powered-by": "Express",
+            "x-xss-protection": "1; mode=block"
+          },
+          "data": {
+            "hashrateGhs": 5.064559545,
+            "balanceKrx": 2224.8089069,
+            "workersOnline": 5
+          }
+        },
+        {
+          "status": 200,
+          "latencyMs": 527,
+          "ok": true,
+          "parseOk": true,
+          "headers": {
+            "connection": "keep-alive",
+            "content-length": "19659",
+            "content-type": "application/json; charset=utf-8",
+            "date": "Wed, 17 Jun 2026 15:14:03 GMT",
+            "etag": "W/\"4ccb-+gcOLpaArfuTJ262sgGR26ZTKWg\"",
+            "server": "nginx/1.18.0 (Ubuntu)",
+            "vary": "Accept-Encoding",
+            "x-content-type-options": "nosniff",
+            "x-frame-options": "SAMEORIGIN",
+            "x-powered-by": "Express",
+            "x-xss-protection": "1; mode=block"
+          },
+          "data": {
+            "hashrateGhs": 5.064559545,
+            "balanceKrx": 2224.8089069,
+            "workersOnline": 5
+          }
+        },
+        {
+          "status": 200,
+          "latencyMs": 527,
+          "ok": true,
+          "parseOk": true,
+          "headers": {
+            "connection": "keep-alive",
+            "content-length": "19659",
+            "content-type": "application/json; charset=utf-8",
+            "date": "Wed, 17 Jun 2026 15:14:05 GMT",
+            "etag": "W/\"4ccb-+gcOLpaArfuTJ262sgGR26ZTKWg\"",
+            "server": "nginx/1.18.0 (Ubuntu)",
+            "vary": "Accept-Encoding",
+            "x-content-type-options": "nosniff",
+            "x-frame-options": "SAMEORIGIN",
+            "x-powered-by": "Express",
+            "x-xss-protection": "1; mode=block"
+          },
+          "data": {
+            "hashrateGhs": 5.064559545,
+            "balanceKrx": 2224.8089069,
+            "workersOnline": 5
+          }
+        }
+      ],
+      "successCount": 10,
+      "failCount": 0,
+      "latencyMin": 520,
+      "latencyMax": 1004,
+      "latencyAvg": 578,
+      "latencyP99": 1004,
+      "dataChangedPct": 11.11111111111111,
+      "rateLimitHeaders": false
+    },
+    {
+      "intervalMs": 1000,
+      "cycles": [
+        {
+          "status": 200,
+          "latencyMs": 1003,
+          "ok": true,
+          "parseOk": true,
+          "headers": {
+            "connection": "keep-alive",
+            "content-length": "19659",
+            "content-type": "application/json; charset=utf-8",
+            "date": "Wed, 17 Jun 2026 15:14:06 GMT",
+            "etag": "W/\"4ccb-+gcOLpaArfuTJ262sgGR26ZTKWg\"",
+            "server": "nginx/1.18.0 (Ubuntu)",
+            "vary": "Accept-Encoding",
+            "x-content-type-options": "nosniff",
+            "x-frame-options": "SAMEORIGIN",
+            "x-powered-by": "Express",
+            "x-xss-protection": "1; mode=block"
+          },
+          "data": {
+            "hashrateGhs": 5.064559545,
+            "balanceKrx": 2224.8089069,
+            "workersOnline": 5
+          }
+        },
+        {
+          "status": 200,
+          "latencyMs": 608,
+          "ok": true,
+          "parseOk": true,
+          "headers": {
+            "connection": "keep-alive",
+            "content-length": "19658",
+            "content-type": "application/json; charset=utf-8",
+            "date": "Wed, 17 Jun 2026 15:14:08 GMT",
+            "etag": "W/\"4cca-jAbXOYfuumo8pkKSzUFwh8SG4P8\"",
+            "server": "nginx/1.18.0 (Ubuntu)",
+            "vary": "Accept-Encoding",
+            "x-content-type-options": "nosniff",
+            "x-frame-options": "SAMEORIGIN",
+            "x-powered-by": "Express",
+            "x-xss-protection": "1; mode=block"
+          },
+          "data": {
+            "hashrateGhs": 5.028767606,
+            "balanceKrx": 2242.8600399,
+            "workersOnline": 5
+          }
+        },
+        {
+          "status": 200,
+          "latencyMs": 525,
+          "ok": true,
+          "parseOk": true,
+          "headers": {
+            "connection": "keep-alive",
+            "content-length": "19658",
+            "content-type": "application/json; charset=utf-8",
+            "date": "Wed, 17 Jun 2026 15:14:09 GMT",
+            "etag": "W/\"4cca-jAbXOYfuumo8pkKSzUFwh8SG4P8\"",
+            "server": "nginx/1.18.0 (Ubuntu)",
+            "vary": "Accept-Encoding",
+            "x-content-type-options": "nosniff",
+            "x-frame-options": "SAMEORIGIN",
+            "x-powered-by": "Express",
+            "x-xss-protection": "1; mode=block"
+          },
+          "data": {
+            "hashrateGhs": 5.028767606,
+            "balanceKrx": 2242.8600399,
+            "workersOnline": 5
+          }
+        },
+        {
+          "status": 200,
+          "latencyMs": 543,
+          "ok": true,
+          "parseOk": true,
+          "headers": {
+            "connection": "keep-alive",
+            "content-length": "19658",
+            "content-type": "application/json; charset=utf-8",
+            "date": "Wed, 17 Jun 2026 15:14:11 GMT",
+            "etag": "W/\"4cca-jAbXOYfuumo8pkKSzUFwh8SG4P8\"",
+            "server": "nginx/1.18.0 (Ubuntu)",
+            "vary": "Accept-Encoding",
+            "x-content-type-options": "nosniff",
+            "x-frame-options": "SAMEORIGIN",
+            "x-powered-by": "Express",
+            "x-xss-protection": "1; mode=block"
+          },
+          "data": {
+            "hashrateGhs": 5.028767606,
+            "balanceKrx": 2242.8600399,
+            "workersOnline": 5
+          }
+        },
+        {
+          "status": 200,
+          "latencyMs": 525,
+          "ok": true,
+          "parseOk": true,
+          "headers": {
+            "connection": "keep-alive",
+            "content-length": "19658",
+            "content-type": "application/json; charset=utf-8",
+            "date": "Wed, 17 Jun 2026 15:14:12 GMT",
+            "etag": "W/\"4cca-jAbXOYfuumo8pkKSzUFwh8SG4P8\"",
+            "server": "nginx/1.18.0 (Ubuntu)",
+            "vary": "Accept-Encoding",
+            "x-content-type-options": "nosniff",
+            "x-frame-options": "SAMEORIGIN",
+            "x-powered-by": "Express",
+            "x-xss-protection": "1; mode=block"
+          },
+          "data": {
+            "hashrateGhs": 5.028767606,
+            "balanceKrx": 2242.8600399,
+            "workersOnline": 5
+          }
+        },
+        {
+          "status": 200,
+          "latencyMs": 524,
+          "ok": true,
+          "parseOk": true,
+          "headers": {
+            "connection": "keep-alive",
+            "content-length": "19658",
+            "content-type": "application/json; charset=utf-8",
+            "date": "Wed, 17 Jun 2026 15:14:14 GMT",
+            "etag": "W/\"4cca-jAbXOYfuumo8pkKSzUFwh8SG4P8\"",
+            "server": "nginx/1.18.0 (Ubuntu)",
+            "vary": "Accept-Encoding",
+            "x-content-type-options": "nosniff",
+            "x-frame-options": "SAMEORIGIN",
+            "x-powered-by": "Express",
+            "x-xss-protection": "1; mode=block"
+          },
+          "data": {
+            "hashrateGhs": 5.028767606,
+            "balanceKrx": 2242.8600399,
+            "workersOnline": 5
+          }
+        },
+        {
+          "status": 200,
+          "latencyMs": 538,
+          "ok": true,
+          "parseOk": true,
+          "headers": {
+            "connection": "keep-alive",
+            "content-length": "19658",
+            "content-type": "application/json; charset=utf-8",
+            "date": "Wed, 17 Jun 2026 15:14:16 GMT",
+            "etag": "W/\"4cca-jAbXOYfuumo8pkKSzUFwh8SG4P8\"",
+            "server": "nginx/1.18.0 (Ubuntu)",
+            "vary": "Accept-Encoding",
+            "x-content-type-options": "nosniff",
+            "x-frame-options": "SAMEORIGIN",
+            "x-powered-by": "Express",
+            "x-xss-protection": "1; mode=block"
+          },
+          "data": {
+            "hashrateGhs": 5.028767606,
+            "balanceKrx": 2242.8600399,
+            "workersOnline": 5
+          }
+        },
+        {
+          "status": 200,
+          "latencyMs": 530,
+          "ok": true,
+          "parseOk": true,
+          "headers": {
+            "connection": "keep-alive",
+            "content-length": "19658",
+            "content-type": "application/json; charset=utf-8",
+            "date": "Wed, 17 Jun 2026 15:14:17 GMT",
+            "etag": "W/\"4cca-jAbXOYfuumo8pkKSzUFwh8SG4P8\"",
+            "server": "nginx/1.18.0 (Ubuntu)",
+            "vary": "Accept-Encoding",
+            "x-content-type-options": "nosniff",
+            "x-frame-options": "SAMEORIGIN",
+            "x-powered-by": "Express",
+            "x-xss-protection": "1; mode=block"
+          },
+          "data": {
+            "hashrateGhs": 5.028767606,
+            "balanceKrx": 2242.8600399,
+            "workersOnline": 5
+          }
+        },
+        {
+          "status": 200,
+          "latencyMs": 555,
+          "ok": true,
+          "parseOk": true,
+          "headers": {
+            "connection": "keep-alive",
+            "content-length": "19658",
+            "content-type": "application/json; charset=utf-8",
+            "date": "Wed, 17 Jun 2026 15:14:19 GMT",
+            "etag": "W/\"4cca-jAbXOYfuumo8pkKSzUFwh8SG4P8\"",
+            "server": "nginx/1.18.0 (Ubuntu)",
+            "vary": "Accept-Encoding",
+            "x-content-type-options": "nosniff",
+            "x-frame-options": "SAMEORIGIN",
+            "x-powered-by": "Express",
+            "x-xss-protection": "1; mode=block"
+          },
+          "data": {
+            "hashrateGhs": 5.028767606,
+            "balanceKrx": 2242.8600399,
+            "workersOnline": 5
+          }
+        },
+        {
+          "status": 200,
+          "latencyMs": 526,
+          "ok": true,
+          "parseOk": true,
+          "headers": {
+            "connection": "keep-alive",
+            "content-length": "19658",
+            "content-type": "application/json; charset=utf-8",
+            "date": "Wed, 17 Jun 2026 15:14:20 GMT",
+            "etag": "W/\"4cca-jAbXOYfuumo8pkKSzUFwh8SG4P8\"",
+            "server": "nginx/1.18.0 (Ubuntu)",
+            "vary": "Accept-Encoding",
+            "x-content-type-options": "nosniff",
+            "x-frame-options": "SAMEORIGIN",
+            "x-powered-by": "Express",
+            "x-xss-protection": "1; mode=block"
+          },
+          "data": {
+            "hashrateGhs": 5.028767606,
+            "balanceKrx": 2242.8600399,
+            "workersOnline": 5
+          }
+        }
+      ],
+      "successCount": 10,
+      "failCount": 0,
+      "latencyMin": 524,
+      "latencyMax": 1003,
+      "latencyAvg": 587.7,
+      "latencyP99": 1003,
+      "dataChangedPct": 11.11111111111111,
+      "rateLimitHeaders": false
+    }
+  ]
+}

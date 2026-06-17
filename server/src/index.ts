@@ -1,6 +1,8 @@
 import { config } from './config.js';
 import { createServer } from './server.js';
 import { startSync } from './sync.js';
+import { startPoolSync } from './poolSync.js';
+import { startBridgeSync } from './bridgeSync.js';
 import { getActiveAddress } from './address.js';
 
 const app = createServer();
@@ -15,4 +17,6 @@ app.listen(config.port, () => {
   );
   console.log(`Fuso do report: ${config.timezone}`);
   startSync();
+  startPoolSync();
+  startBridgeSync();
 });

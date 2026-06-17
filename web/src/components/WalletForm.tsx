@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { setAddress } from '../api';
+import { useSettings } from '../settings';
 
 export default function WalletForm({
   current,
@@ -10,6 +11,7 @@ export default function WalletForm({
   onSaved: () => void;
   onCancel?: () => void;
 }) {
+  const { t } = useSettings();
   const [value, setValue] = useState(current ?? '');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -30,15 +32,16 @@ export default function WalletForm({
 
   return (
     <div className="wallet-form">
-      <h2>Configurar wallet</h2>
+      <h2>{t('wallet.configure')}</h2>
       <p className="wallet-hint">
-        Cole o endereço KERYX que você quer monitorar (formato <code>keryx:...</code>). Ele
-        fica salvo localmente, no banco da aplicação — nunca vai para o repositório.
+        {t('wallet.hintBefore')}
+        <code>keryx:...</code>
+        {t('wallet.hintAfter')}
       </p>
       <form onSubmit={submit}>
         <input
           type="text"
-          placeholder="keryx:… (cole seu endereço completo)"
+          placeholder={t('wallet.placeholder')}
           value={value}
           onChange={(e) => setValue(e.target.value)}
           autoFocus
@@ -46,21 +49,17 @@ export default function WalletForm({
         />
         <div className="wallet-actions">
           <button type="submit" disabled={saving || value.trim().length < 8}>
-            {saving ? 'Validando…' : 'Salvar e sincronizar'}
+            {saving ? t('wallet.validating') : t('wallet.save')}
           </button>
           {onCancel && (
             <button type="button" className="ghost" onClick={onCancel} disabled={saving}>
-              Cancelar
+              {t('wallet.cancel')}
             </button>
           )}
         </div>
       </form>
-      {error && <div className="error">Erro: {error}</div>}
-      {current && (
-        <p className="wallet-hint">
-          Trocar de wallet recarrega o histórico do novo endereço (re-sincronização).
-        </p>
-      )}
+      {error && <div className="error">{t('app.error', { msg: error })}</div>}
+      {current && <p className="wallet-hint">{t('wallet.changeHint')}</p>}
     </div>
   );
 }
