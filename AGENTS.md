@@ -8,7 +8,7 @@
 | Build | `npm run build` — `tsc --noEmit` + vite build → `web/dist` |
 | Preview | `npm run preview` |
 
-Deploy: Vercel (static `web/dist` + serverless `api/price.ts`).
+Deploy: Vercel Root Directory = `web` (static `dist` + serverless `api/price.ts`).
 
 ## Architecture
 
@@ -25,7 +25,8 @@ Deploy: Vercel (static `web/dist` + serverless `api/price.ts`).
 
 ## Vercel
 
-- `vercel.json`: build `npm run build -w web`, output `web/dist`, SPA rewrite + `/api/*`.
+- Project **Root Directory** must be `web`.
+- `web/vercel.json`: build `npm run build`, output `dist`, SPA rewrite + `/api/*`.
 - Optional env: `NONKYC_URL` (defaults to nonkyc KRX_USDT ticker).
 
 ## Legacy
