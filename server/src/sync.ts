@@ -11,10 +11,10 @@ import {
   applyTxDetail,
   txCount,
   wipeTxs,
-  wipePoolData,
   getMeta,
   setMeta,
   snapshotPrice,
+  insertPricePoint,
 } from './db.js';
 import { getActiveAddress } from './address.js';
 import { toBrtDay, todayBrt } from './day.js';
@@ -121,11 +121,16 @@ async function resolveTxDetails(address: string, maxTxs = 20000): Promise<void> 
   }
 }
 
-/** Captura o preço atual e congela como snapshot do dia corrente (BRT). */
+/** Captura o preço atual e congela como snapshot do dia corrente (BRT).
+ *  Também alimenta price_history (high-res) para a janela 24h do dashboard. */
 async function capturePrice(): Promise<void> {
   try {
     const price = await getPriceUsd();
-    if (price > 0) snapshotPrice(todayBrt(), price, Date.now());
+    if (price > 0) {
+      const now = Date.now();
+      snapshotPrice(todayBrt(), price, now);
+      insertPricePoint(now, price);
+    }
   } catch (err) {
     console.warn('[price] falha ao buscar preço:', (err as Error).message);
   }
@@ -140,7 +145,6 @@ function reconcileAddress(address: string): void {
   if (synced !== address) {
     console.log(`[sync] wallet alterada (${synced ?? 'nenhuma'} -> ${address}); recarregando dados.`);
     wipeTxs();
-    wipePoolData(); // não misturar histórico de pool de wallets diferentes
     setMeta('synced_address', address);
     setMeta('backfill_done', '0');
     syncStatus.backfillDone = false;

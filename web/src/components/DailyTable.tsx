@@ -8,6 +8,7 @@ export default function DailyTable({ days }: { days: DailyRow[] }) {
   const totalUsdt = days.reduce((a, r) => a + r.est_usdt, 0);
 
   return (
+    <div className="table-wrap">
     <table className="table">
       <thead>
         <tr>
@@ -51,5 +52,6 @@ export default function DailyTable({ days }: { days: DailyRow[] }) {
         </tr>
       </tfoot>
     </table>
+    </div>
   );
 }

@@ -3,6 +3,12 @@ data/
 web/dist/
 server/dist/
 .env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+credentials*.json
 *.log
 
 # Configurações locais/pessoais do Claude Code

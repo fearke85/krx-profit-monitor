@@ -4,31 +4,31 @@
 
 | What | Command |
 |------|---------|
-| Dev (both) | `npm run dev` — server (:4000) + Vite (:5173, proxies `/api`) |
-| Dev server only | `npm run dev -w server` — `tsx watch src/index.ts` |
-| Dev web only | `npm run dev -w web` — `vite` |
-| Prod (one port) | `npm run build -w web` then `npm start` |
-| Typecheck web | Part of `npm run build -w web` (`tsc --noEmit` before vite build) |
+| Dev | `npm run dev` — Vite (:5173) + `/api/price` middleware |
+| Build | `npm run build` — `tsc --noEmit` + vite build → `web/dist` |
+| Preview | `npm run preview` |
 
-No linter/formatter or test commands defined. No `tsc` for server (runs via `tsx`, `noEmit: true`).
+Deploy: Vercel (static `web/dist` + serverless `api/price.ts`).
 
 ## Architecture
 
-- **npm workspaces monorepo**: `server/` (Express + `node:sqlite`) + `web/` (React 18 + Vite + Recharts).
-- **Entrypoint**: `server/src/index.ts:8-21` — creates Express app, starts 3 concurrent sync loops:
-  - `startSync()` — on-chain tx sync (backfill then incremental, `POLL_INTERVAL_MS` = 1min)
-  - `startPoolSync()` — baikalmine pool API every 3s
-  - `startBridgeSync()` — solo pool `/metrics` every 15s (only if `SOLO_ENABLED=1`)
-- **Database**: SQLite via built-in `node:sqlite` at `data/krx.db`. WAL+EXCLUSIVE pragma for Docker Desktop Windows compat; fallback to DELETE journal.
-- **Server .ts files** import with `.js` extension (e.g. `./config.js`) — tsx convention, not a mistake.
-- **Address format**: `keryx:...` (bech32). Set via dashboard UI, persisted in DB. NOT in `.env`.
-- **Price source**: nonkyc.io `KRX_USDT` ticker — no historical candles available. Price snapshots frozen per day while running.
+- **Front-only SPA**: `web/` (React 18 + Vite + Recharts + Dexie/IndexedDB).
+- **Data**: each browser keeps its own IndexedDB (`krx-profit-monitor`) — txs, price snapshots/history, meta (wallet).
+- **Sync**: client-side loop in `web/src/lib/sync.ts` (backfill → incremental → tx details), runs while the tab is open (`POLL_INTERVAL_MS` = 1min; also on visibility).
+- **APIs**:
+  - Keryx explorer — fetched **directly from the browser** (`access-control-allow-origin: *`).
+  - nonkyc price — **no CORS**; proxied via `GET /api/price` (Vercel serverless in prod, Vite middleware in dev).
+- **Address format**: `keryx:...` (bech32). Set via dashboard UI, persisted in IndexedDB. NOT in `.env`.
+- **Day closes** in `America/Sao_Paulo` via `Intl`.
+- **"Received" KRX** = net positive per tx (outputs − inputs from same wallet). UTXO consolidations excluded.
+- **Strategy ETA** uses recent on-chain daily average (last 7 days with receipts).
 
-## Non-obvious
+## Vercel
 
-- **"Received" KRX = net positive per tx** (outputs minus inputs from same wallet). UTXO consolidations (net ~0) are excluded.
-- **Day closes in America/Sao_Paulo** via `Intl`, not UTC.
-- **Three data sources** feed the dashboard: on-chain (keryx explorer), pool (baikalmine), solo (local bridge `/metrics`). Each has independent sync loop and history.
-- **No build step for server** — `tsx` runs TS directly. `dist/` dirs exist for web only.
-- **Server Dockerfile removes npm CLI** post-install to reduce CVE surface.
-- **Reset**: delete `data/krx.db*` while server is stopped.
+- `vercel.json`: build `npm run build -w web`, output `web/dist`, SPA rewrite + `/api/*`.
+- Optional env: `NONKYC_URL` (defaults to nonkyc KRX_USDT ticker).
+
+## Legacy
+
+- `server/` (Express + SQLite) is leftover from the previous architecture and is **not** used by the current app. Safe to ignore or delete later.
+- **Reset client data**: DevTools → Application → IndexedDB → delete `krx-profit-monitor`.

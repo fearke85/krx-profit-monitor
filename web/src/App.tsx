@@ -1,11 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
   getDaily,
-  getPool,
   getSummary,
   type DailyResponse,
-  type PoolData,
-  type PoolHistoryRange,
   type Summary,
 } from './api';
 import { useSettings } from './settings';
@@ -13,9 +10,9 @@ import SummaryCards from './components/SummaryCards';
 import DailyChart from './components/DailyChart';
 import DailyTable from './components/DailyTable';
 import WalletForm from './components/WalletForm';
-import PoolStats from './components/PoolStats';
 import AccordionItem from './components/Accordion';
 import StrategyPanel from './components/StrategyPanel';
+import { startSync, subscribeSync, syncStatus, triggerSync } from './lib/sync';
 
 const RANGES: Array<{ key: string; days: number }> = [
   { key: 'range.7d', days: 7 },
@@ -24,7 +21,7 @@ const RANGES: Array<{ key: string; days: number }> = [
   { key: 'range.all', days: 3650 },
 ];
 
-const AUTO_REFRESH_MS = 5 * 60_000; // auto-refresh a cada 5 minutos
+const AUTO_REFRESH_MS = 5 * 60_000;
 
 function isoDaysAgo(n: number): string {
   const d = new Date(Date.now() - n * 86_400_000);
@@ -35,15 +32,17 @@ export default function App() {
   const { t, lang, setLang, theme, toggleTheme } = useSettings();
   const [summary, setSummary] = useState<Summary | null>(null);
   const [daily, setDaily] = useState<DailyResponse | null>(null);
-  const [pool, setPool] = useState<PoolData | null>(null);
-  const [poolError, setPoolError] = useState<string | null>(null);
-  const [poolRange, setPoolRange] = useState<PoolHistoryRange>('24h');
-  const [bridgeRange] = useState<PoolHistoryRange>('24h');
   const [rangeDays, setRangeDays] = useState(30);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<number | null>(null);
   const [showWalletForm, setShowWalletForm] = useState(false);
+  const [syncTick, setSyncTick] = useState(0);
+
+  useEffect(() => {
+    startSync();
+    return subscribeSync(() => setSyncTick((n) => n + 1));
+  }, []);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -54,18 +53,12 @@ export default function App() {
       setDaily(d);
       setError(null);
       setLastUpdated(Date.now());
-      // Pools carregam em paralelo sem bloquear o dashboard principal
-      if (!s.needs_address && s.address) {
-        getPool(poolRange)
-          .then(setPool)
-          .catch((e: Error) => setPoolError(e.message));
-      }
     } catch (err) {
       setError((err as Error).message);
     } finally {
       setLoading(false);
     }
-  }, [rangeDays, poolRange, bridgeRange]);
+  }, [rangeDays]);
 
   useEffect(() => {
     void load();
@@ -73,17 +66,15 @@ export default function App() {
     return () => clearInterval(id);
   }, [load]);
 
-  const needsAddress = !!summary && (summary.needs_address || !summary.address);
+  // Atualiza o dashboard quando um ciclo de sync termina (ou a cada ~100 txs no backfill).
+  useEffect(() => {
+    if (syncTick === 0) return;
+    if (!syncStatus.running || syncStatus.ingestedTxs % 100 === 0) {
+      void load();
+    }
+  }, [syncTick, load]);
 
-  const pools: Array<{
-    id: string;
-    name: string;
-    data: PoolData;
-    range: PoolHistoryRange;
-    onRangeChange: (r: PoolHistoryRange) => void;
-  }> = [];
-  if (pool)
-    pools.push({ id: 'baikal', name: 'baikalmine.com', data: pool, range: poolRange, onRangeChange: setPoolRange });
+  const needsAddress = !!summary && (summary.needs_address || !summary.address);
 
   return (
     <div className="app">
@@ -123,9 +114,16 @@ export default function App() {
                 EN
               </button>
             </div>
-            <button className="refresh-btn" onClick={() => void load()} disabled={loading}>
-              <span className={loading ? 'spin' : ''}>↻</span>
-              {loading ? t('app.refreshing') : t('app.refresh')}
+            <button
+              className="refresh-btn"
+              onClick={() => {
+                triggerSync();
+                void load();
+              }}
+              disabled={loading}
+            >
+              <span className={loading || syncStatus.running ? 'spin' : ''}>↻</span>
+              {loading || syncStatus.running ? t('app.refreshing') : t('app.refresh')}
             </button>
           </div>
         </div>
@@ -136,11 +134,22 @@ export default function App() {
 
       {!summary && !error && <div className="sync-bar">{t('app.loading')}</div>}
 
+      {syncStatus.address && (!syncStatus.backfillDone || syncStatus.phase !== 'idle') && (
+        <div className="sync-bar">
+          {t('summary.backfill', {
+            phase: syncStatus.phase,
+            ingested: syncStatus.ingestedTxs,
+            total: syncStatus.totalTxCount ? `/${syncStatus.totalTxCount}` : '',
+          })}
+        </div>
+      )}
+
       {summary && (needsAddress || showWalletForm) ? (
         <WalletForm
           current={summary.address}
           onSaved={() => {
             setShowWalletForm(false);
+            triggerSync();
             void load();
           }}
           onCancel={summary.address ? () => setShowWalletForm(false) : undefined}
@@ -151,38 +160,6 @@ export default function App() {
 
           <StrategyPanel />
 
-          {poolError && (
-            <div className="error" style={{ fontSize: '0.85rem' }}>
-              {t('app.poolUnavailable', { msg: poolError })}
-            </div>
-          )}
-
-          {/* Pools (accordion — solo local + externa) */}
-          {pools.map((p, i) => (
-            <AccordionItem
-              key={p.id}
-              defaultOpen={p.data.isOnline}
-              title={
-                p.data.mode === 'solo'
-                  ? t('pool.titleSolo', { name: p.name })
-                  : t('pool.title', { name: p.name })
-              }
-              right={
-                <span style={{ color: p.data.isOnline ? 'var(--bright)' : '#ff4444' }}>
-                  {p.data.isOnline ? t('pool.online') : t('pool.offline')}
-                </span>
-              }
-            >
-              <PoolStats
-                pool={p.data}
-                priceUsd={summary.price_usd ?? 0}
-                range={p.range}
-                onRangeChange={p.onRangeChange}
-              />
-            </AccordionItem>
-          ))}
-
-          {/* Recebido na carteira (accordion) */}
           <AccordionItem title={t('wallet.section')} defaultOpen>
             <div className="panel-head" style={{ marginTop: '0.5rem' }}>
               <h3 style={{ margin: 0, fontSize: 15, color: 'var(--muted)' }}>{t('wallet.perDay')}</h3>

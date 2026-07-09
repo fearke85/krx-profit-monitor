@@ -26,9 +26,9 @@ RUN apk update && apk upgrade --no-cache \
 WORKDIR /app
 
 COPY --from=server-builder /app/node_modules ./node_modules
-COPY .env ./
 COPY server/ ./
 COPY --from=web-builder /app/web/dist /web/dist
+# Runtime env via compose `env_file` / `-e` — nunca bake .env na imagem.
 
 VOLUME ["/data"]
 

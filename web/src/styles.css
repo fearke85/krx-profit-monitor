@@ -39,6 +39,8 @@ body {
   background: var(--bg);
   color: var(--text);
   font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  overflow-x: hidden;
+  -webkit-text-size-adjust: 100%;
 }
 
 .app {
@@ -343,27 +345,11 @@ body {
   color: var(--muted);
 }
 
-/* ---- pool stats ---- */
-.pool-status {
-  font-size: 13px;
-  font-weight: 400;
-  margin-left: 10px;
-  letter-spacing: 0;
-  text-transform: none;
-}
-
-.pool-next-payment {
-  margin-top: 14px;
-  padding: 10px 14px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  font-size: 13px;
-  color: var(--muted);
-  background: var(--bg);
-}
-
 .table-wrap {
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin: 0 -4px;
+  padding: 0 4px;
 }
 
 .table-wrap table {
@@ -455,6 +441,8 @@ body,
   margin: 0;
   font-size: 17px;
   flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 .accordion-right {
   color: var(--muted);
@@ -562,3 +550,167 @@ body,
   background: var(--bright);
   transform: translateX(-50%);
 }
+
+/* ---- responsivo ---- */
+@media (max-width: 720px) {
+  .app {
+    padding: 16px 12px 36px;
+  }
+
+  .header h1 {
+    font-size: 20px;
+  }
+
+  .subtitle {
+    font-size: 12.5px;
+    line-height: 1.4;
+  }
+
+  .refresh {
+    width: 100%;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 8px;
+  }
+
+  .refresh .updated {
+    width: 100%;
+    order: 3;
+  }
+
+  .cards {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    margin-top: 16px;
+  }
+
+  .card {
+    padding: 14px;
+  }
+
+  .card-value {
+    font-size: 22px;
+    overflow-wrap: anywhere;
+  }
+
+  .panel {
+    margin-top: 16px;
+    padding: 14px;
+    border-radius: 10px;
+  }
+
+  .panel-head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .ranges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    width: 100%;
+  }
+
+  .ranges button {
+    margin-left: 0;
+    flex: 1 1 auto;
+    min-width: 4.5rem;
+    text-align: center;
+  }
+
+  .chart {
+    margin: 4px 0 12px;
+  }
+
+  .accordion-head {
+    padding: 14px 12px;
+    gap: 8px;
+  }
+
+  .accordion-title {
+    font-size: 15px;
+  }
+
+  .accordion-body {
+    padding: 0 12px 14px;
+  }
+
+  .wallet-form {
+    padding: 16px;
+    margin-top: 16px;
+  }
+
+  .wallet-actions {
+    flex-direction: column;
+  }
+
+  .wallet-actions button {
+    width: 100%;
+  }
+
+  .strategy-body {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .strategy-section {
+    min-width: 0;
+  }
+
+  .strategy-range-row {
+    flex-wrap: wrap;
+    row-gap: 6px;
+  }
+
+  .strategy-range-track {
+    order: 5;
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+
+  .footer {
+    font-size: 11px;
+    line-height: 1.5;
+  }
+
+  .table {
+    font-size: 12.5px;
+  }
+
+  .table th,
+  .table td {
+    padding: 8px 6px;
+  }
+}
+
+@media (max-width: 400px) {
+  .header h1 {
+    font-size: 18px;
+  }
+
+  .refresh-btn {
+    flex: 1;
+    justify-content: center;
+  }
+
+  .card-value {
+    font-size: 20px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .refresh-btn .spin {
+    animation: none;
+  }
+  body,
+  .panel,
+  .card,
+  .sync-bar,
+  .wallet-form,
+  .strategy-bar-fill,
+  .accordion-chevron {
+    transition: none;
+  }
+}
+

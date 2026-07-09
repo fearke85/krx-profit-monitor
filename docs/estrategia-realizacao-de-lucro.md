@@ -1,163 +1,121 @@
 # Estratégia de mineração e realização de lucro — KRX (Keryx)
 
-> Documento de conhecimento. Resume **por que mineração solo é inviável** na Keryx hoje
-> e define a **estratégia baseada em pool (baikalmine)** para realizar lucro casando as
-> janelas de pagamento da pool com o preço intradiário e o mínimo de depósito da corretora.
+> Documento de conhecimento. **Mineração solo direta é viável** na Keryx e é o caminho adotado.
+> Cobre como minerar (miner oficial → gRPC do seu node), por que o caminho via bridge/stratum
+> falhou, e como casar os ganhos com o preço e o mínimo da corretora para realizar lucro.
+
+> ⚠️ **Correção (substitui uma versão anterior errada deste doc).** Uma versão anterior concluiu
+> que "solo é inviável (milênios por bloco)". **Isso estava errado** — fruto de um erro de
+> unidade no cálculo (ver §2). Na prática o solo direto rende blocos a cada poucos minutos.
 
 ---
 
-## TL;DR (decisão)
+## TL;DR
 
-- **Minerar solo é inviável** com um GPU nesta rede: ~14,4 bilhões de shares por bloco →
-  **~8.000–13.000 anos por bloco**. Não é problema de configuração; é probabilidade pura.
-- **Estratégia adotada:** minerar na **pool baikalmine** (recompensa proporcional e frequente)
-  e otimizar a **realização de lucro** — quando converter KRX → USDT na corretora.
-- **Gargalos de realização:** a pool paga em lotes de **2.000 KRX** (threshold) e a corretora
-  só aceita depósitos a partir de **4.000 KRX**. O preço do KRX **varia muito intradiário**.
-- **Tática:** acumular **2 pagamentos da pool (= 4.000 KRX)**, e **disparar o depósito/venda
-  numa janela de preço alto**, usando o ETA de pagamento da pool para se antecipar.
+- **Minere solo, direto no seu node**, com o miner **oficial** (Keryx-Labs) por **gRPC**:
+  ```
+  keryx-miner --mining-address keryx:SEU_ENDERECO --keryxd-address SEU_NODE:22110
+  ```
+  (no toolkit: `run-miner.ps1 -Miner official -a keryx:... -s host.docker.internal -p 22110`)
+- A ~0,7–0,8 GH/s numa rede de ~1,1 TH/s você acha **~600 blocos/dia** (≈ 1 a cada ~2,5 min),
+  ~**2.400 KRX/dia** direto na carteira. Recompensas pingam quase em tempo real.
+- **Não use pool nem bridge stratum** para isso (ver §3 — o stratum a 10 BPS perde quase todo
+  bloco por staleness).
+- **Realização de lucro:** a corretora exige depósito ≥ **4.000 KRX** e o preço varia muito
+  intradiário → acumule lotes de 4.000 e **venda em janela de preço alto** (§5).
 
 ---
 
-## 1. Por que solo é inviável (a prova)
+## 1. Por que solo direto funciona
 
-Cada minerador recebe trabalho na dificuldade de **share** (baixa) e envia shares constantemente.
-Um **bloco** só é encontrado quando um share também satisfaz a dificuldade de **rede** (altíssima).
-O número esperado de shares por bloco é uma razão de dificuldades — **independe de convenção de
-unidade**:
+A probabilidade de achar um bloco é a sua **fração do hashrate da rede**:
 
 ```
-shares por bloco = dificuldade_de_rede / dificuldade_de_share
-                 = 5,8 × 10¹⁰ / 4
-                 ≈ 1,44 × 10¹⁰   (≈ 14,4 bilhões de shares)
+fração            = meu_hashrate / hashrate_da_rede
+blocos/dia (meus) = fração × blocos/dia_da_rede
 ```
 
-Com um GPU a ~0,7–1,0 GH/s (taxa de share ~0,03–0,2 share/s), isso dá **~8.000 a 13.000 anos
-para encontrar um único bloco**. Por isso `blocosEncontrados = 0` e a estimativa de ganho solo
-é praticamente **0 KRX/dia**.
+Com os números reais medidos (do próprio node):
 
-### Armadilha de cálculo (registrada para não repetir)
+| Grandeza | Valor |
+|---|---|
+| Meu hashrate (GPU) | ~0,7–0,8 GH/s |
+| Hashrate da rede | ~1,10 TH/s |
+| Minha fração | ~0,07 % |
+| Blocos/dia da rede (10 BPS) | 864.000 |
+| **Meus blocos/dia** | **~600** (≈ 1 a cada ~2,5 min) |
+| Recompensa direta na carteira | 4,05 KRX/bloco (§4) |
+| **Ganho/dia estimado** | **~2.400 KRX** (direto) |
 
-Comparar a **minha** hashrate (invocações reais de hash, ~0,7 GH/s, igual ao display do miner)
-com o `NetworkHashesPerSecond` do nó (≈1,06 TH/s) dá uma fração de ~0,03% e sugere "~266 blocos/dia"
-— **errado**. O hashrate de rede do nó está em **unidades de dificuldade-Kaspa**, ~2³² distintas
-das invocações reais de hash do GPU. A única medida correta é a **razão de targets**
-(`dificuldade_de_rede / dificuldade_de_share`), que bate com a realidade (`blocosEncontrados = 0`).
+Consistência dos números da rede: `hashrate_rede × 0,1 s ≈ dificuldade × 2` → `1,10e12 × 0,1 =
+1,1e11 ≈ 5,5e10 × 2` ✓ (convenção Kaspa; hashrate e dificuldade casam em hashes reais).
 
-O monitor (painel "Pool solo") usa a fórmula correta: hashes esperados por bloco =
-`dificuldade_de_rede × 2³²`, dividido pela minha hashrate.
+## 2. O erro de unidade (registrado para nunca repetir)
 
----
+A versão anterior calculou "hashes por bloco = `dificuldade_de_rede × 2³²`", tratando a
+dificuldade da **rede** como se fosse a dificuldade de **share** do stratum (`minShareDiff`, ~4).
+São escalas diferentes (~2³² de diferença). Isso inflou o tempo-por-bloco para "milênios".
 
-## 2. Fatos da rede Keryx (referência)
+**O certo** é comparar **hashrates na mesma unidade** (hashes reais/s): o `NetworkHashesPerSecond`
+do node e o hashrate do GPU (validado contra o display do miner) estão ambos em hashes reais →
+a razão dá ~600 blocos/dia. A evidência empírica (recompensas pingando em tempo real) confirma.
 
-Extraídos do código do node (`keryx-node`), mainnet:
+## 3. Por que o caminho via bridge/stratum falhou (shares OK, ~0 blocos)
+
+Tentou-se antes: `miner stratum (baikalmine) → keryx-bridge → keryxd`. Os shares eram aceitos e o
+OPoI passava, mas **nenhum bloco** era contabilizado. Um bridge stratum **não é um tradutor
+transparente** para a Keryx — ele tem que acertar três coisas, e qualquer uma quebra o ganho:
+
+1. **10 BPS mata o stratum (causa principal).** Bloco a cada **100 ms**. A latência
+   node→bridge→miner→submit→bridge→node faz o bloco vencedor chegar **stale/órfão** quase sempre.
+   O gRPC-direto pega o template fresco e submete instantâneo.
+2. **PoW próprio (KeryxHash) reimplementado no bridge.** Qualquer divergência do `CalculateKeryxPoW`
+   portado → o bridge nunca reconhece um share que bate o alvo do bloco. O miner oficial usa o PoW
+   do binário oficial, igual ao node.
+3. **OPoI no caminho.** Gate de capacidades + tag por share é lógica custom e frágil (tivemos até
+   que remendar a verificação IPFS só pra despachar jobs).
+
+O fork **baikalmine é feito para o stratum da pool deles**; fora da pool, contra um bridge
+genérico, ele minerava (shares/OPoI) mas não fechava bloco válido. Conclusão: **gRPC-direto é a
+arquitetura certa para Keryx solo**; o bridge era uma camada extra e com perdas.
+
+## 4. Fatos da rede Keryx (referência)
+
+Do código do node (`keryx-node`), mainnet:
 
 | Parâmetro | Valor | Fonte |
 |---|---|---|
-| Tempo de bloco | **100 ms** (10 BPS) → 864.000 blocos/dia | `consensus/core/src/config/bps.rs` |
-| Recompensa (genesis, atual) | **5,4 KRX/bloco** bruto | `consensus/src/processes/coinbase.rs` (`KRX_GENESIS_REWARD_PER_SECOND = 5_400_000_000`) |
-| Split do coinbase | 5% R&D + 20% escrow OPoI → **4,05 KRX direto na carteira** | `coinbase.rs` (`RD_ALLOCATION_BPS=500`, `ESCROW_RATE_BPS=2000`) |
-| Halving | a cada **48 meses** (ciclo de 4 anos) | `coinbase.rs` (`KRX_HALVING_PERIOD_MONTHS = 48`) |
-| Idade da rede | ~1,3 dia (mês 0 → ainda sem halving) | `network_block_count ≈ 1,16M ÷ 10 bps` |
-| Dificuldade de share (vardiff) | **4** (cada share ≈ 17,18 GH no contador) | bridge `minShareDiff` / `DiffToHash(4)` |
-| Dificuldade de rede | **~5,8 × 10¹⁰** | métrica `ks_network_difficulty_gauge` |
-| Cap de emissão (fase principal) | ~9,92 bilhões KRX | `coinbase.rs` (comentário da série geométrica) |
+| Tempo de bloco | 100 ms (10 BPS) → 864.000/dia | `consensus/core/src/config/bps.rs` |
+| Recompensa (genesis, atual) | 5,4 KRX/bloco bruto | `consensus/src/processes/coinbase.rs` |
+| Split do coinbase | 5% R&D + 20% escrow OPoI → **75% = 4,05 KRX direto na carteira** | `coinbase.rs` |
+| Halving | a cada 48 meses (rede ainda no mês 0) | `coinbase.rs` |
 
-> O **escrow de 20%** (OPoI) volta ao minerador via claim da bridge após a janela de desafio;
-> os **5% de R&D** são corte permanente. Logo o líquido prático por bloco é ~4,05 KRX (direto)
-> podendo chegar a ~5,13 KRX se contar o escrow recuperado.
+O escrow de 20% (1,08 KRX/bloco) volta via claim do OPoI; só os 5% de R&D são corte permanente.
 
----
+## 5. Realização de lucro
 
-## 3. Modelo de pagamento da pool (baikalmine)
+**Restrições:** depósito mínimo na corretora = **4.000 KRX**; preço KRX/USDT varia muito no dia.
 
-Diferente do solo, a pool **junta** o trabalho de muitos mineradores, desconta a taxa dela e
-**acumula um saldo seu**, pago quando cruza o threshold:
+**Playbook:**
+1. **Acumule lotes de 4.000 KRX** na carteira (com ~2.400 KRX/dia, ~1 lote a cada ~1,7 dia).
+2. **Case com o preço.** O monitor registra o preço (nonkyc); identifique a janela alta do dia.
+3. **Regra simples:** se `KRX_disponível ≥ 4.000` **e** preço **acima da média/mediana das
+   últimas 24–48 h** → deposita e vende; senão, segura até a próxima janela alta (com teto de
+   espera para limitar risco de queda).
+4. Capturar a janela alta em vez da média já adiciona ~10–15% de USDT sobre o mesmo KRX.
 
-- **Saldo `immature`** → recompensas recém-creditadas, ainda em maturação (coinbase maturity).
-- **Saldo `mature`** → já liberado, conta para o threshold de pagamento.
-- **Threshold de pagamento** → atual **2.000 KRX**. Quando `mature ≥ 2.000`, a pool envia uma
-  transação para a sua carteira.
-- **Janela de pagamento** → a mensagem do monitor estima quando isso ocorre, ex.:
+## 6. Como o profit-monitor acompanha
 
-  > "Próximo pagamento em ~38 min · faltam 284,30 KRX mature para o threshold (2.000 KRX)"
-
-  Ou seja: `mature` atual ≈ 1.715,70 KRX; faltam 284,30; ao ritmo da estimativa diária da pool,
-  isso completa em ~38 min.
-
-**Cada pagamento ≈ 2.000 KRX.** O intervalo entre pagamentos = `2.000 / ganho_diário_KRX`.
-
-> **Dica:** se a baikalmine permitir **configurar o threshold** para 4.000 KRX, você recebe o lote
-> de depósito inteiro em **um único pagamento** (menos taxas de tx e logística mais simples). Vale
-> verificar nas configurações da conta da pool.
-
----
-
-## 4. Restrições de realização de lucro
-
-1. **Corretora aceita depósito a partir de 4.000 KRX.** Abaixo disso, não dá para depositar.
-   → o lote mínimo de realização é **4.000 KRX = 2 pagamentos da pool** (a 2.000 cada).
-2. **Preço do KRX/USDT varia muito intradiário.** Vender no fundo do dia destrói margem; o objetivo
-   é depositar/vender numa **janela de preço alto**.
-3. **Risco de carregar posição.** Esperar o "preço perfeito" expõe a quedas. A meta é capturar
-   *bons* picos com consistência, não o topo absoluto.
-
----
-
-## 5. Playbook de realização de lucro
-
-**Objetivo:** transformar o fluxo de pagamentos da pool (lotes de 2.000 KRX) em vendas na corretora
-em **janelas de preço favorável**, respeitando o mínimo de 4.000 KRX.
-
-1. **Acumule o lote de depósito.** Junte **2 pagamentos da pool ≈ 4.000 KRX** na carteira
-   (ou 1 pagamento, se elevar o threshold da pool para 4.000).
-2. **Antecipe-se pela janela de pagamento.** Use o ETA do monitor ("Próximo pagamento em ~X min")
-   para saber quando o lote estará completo e disponível para depósito.
-3. **Case com o preço.** Cruze a chegada do lote com o **preço intradiário** (o monitor registra o
-   preço nonkyc). Identifique a faixa de horário em que o KRX costuma estar mais alto e dispare o
-   depósito + venda nessa janela.
-4. **Regra de decisão simples (sugestão):**
-   - Tenho **≥ 4.000 KRX** disponíveis? **E**
-   - O preço atual está **acima da média/mediana das últimas 24–48 h**? (ex.: top-tercil do dia)
-   - → **deposita e vende.** Senão, segura até a próxima janela alta (com um teto de espera, ex.:
-     não segurar mais que N horas para limitar risco de queda).
-5. **Reconciliação.** Confirme on-chain (explorer) que o depósito chegou; a corretora credita após
-   as confirmações.
-
-### Exemplo numérico
-
-- Ganho diário na pool: suponha **~3.000 KRX/dia** → 1 pagamento (2.000) a cada ~16 h.
-- 2 pagamentos (4.000 KRX) a cada ~32 h → ~1 depósito a cada ~1,3 dia.
-- Se o KRX oscila ±15% intradiário, escolher a janela alta em vez da média já **adiciona ~15% de
-  USDT** sobre o mesmo volume de KRX — sem minerar nada a mais.
-
----
-
-## 6. Como o monitor apoia (e o que dá para evoluir)
-
-**Já disponível no `krx-profit-monitor`:**
-
-- Painel **baikalmine**: hashrate, saldo `mature`/`immature`, threshold, estimativa diária, lista de
-  **pagamentos** (verdade-fonte dos ganhos) e a linha "Próximo pagamento em ~X min".
-- **Preço KRX/USDT** (nonkyc), com snapshot diário, e histórico de "Recebido por dia".
-- Painel **Pool solo (bridge)**: telemetria honesta que mostra a ETA astronômica do solo (confirma
-  a decisão deste documento).
-
-**Evoluções úteis para a estratégia (sugestões):**
-
-1. **Indicador de lote de depósito**: "X / 4.000 KRX acumulados · próximo lote em ~Yh".
-2. **Janela de preço**: marcar preço atual vs. faixa (mín/méd/máx) das últimas 24–48 h, com um sinal
-   visual de "boa hora para realizar".
-3. **Alerta de realização**: quando `KRX_disponível ≥ 4.000` **e** `preço ≥ limiar`, destacar
-   "Hora de depositar".
-4. **Registro de vendas**: anotar cada depósito/venda (KRX, preço, USDT) para medir se a estratégia
-   de timing está, de fato, batendo a venda "na média".
+A verdade dos ganhos é **on-chain**: cada coinbase do solo cai na sua carteira e o monitor já
+contabiliza isso na seção **"Recebido na carteira"** (lê o explorer em `keryx.ts`/`sync.ts`),
+com série diária e preço. **Não é preciso bridge nem painel de pool para medir o solo** — a
+leitura da carteira basta. (Telemetria viva opcional — hashrate/blocos em tempo real — exigiria
+ler do node/miner, não do bridge; fica como evolução futura, se desejado.)
 
 ---
 
 ## Resumo de uma linha
 
-Solo = inviável (milênios por bloco). Pool = caminho. Realização = acumular **2 pagamentos
-(4.000 KRX)** e vender numa **janela de preço alto**, usando o ETA de pagamento e o preço do monitor
-para cronometrar.
+Solo direto (miner oficial → gRPC do node) rende ~600 blocos/dia (~2.400 KRX/dia) no seu hashrate;
+bridge/stratum não serve a 10 BPS. Realização: acumular 4.000 KRX e vender em janela de preço alto;
+o monitor mede tudo pela carteira on-chain.
