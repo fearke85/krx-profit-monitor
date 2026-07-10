@@ -1,4 +1,5 @@
 import Dexie, { type Table } from 'dexie';
+import type { ListedTx } from './keryx';
 
 export interface RawTx {
   tx_id: string;
@@ -6,10 +7,14 @@ export interface RawTx {
   daa_score: number;
 }
 
-export interface TxRow extends RawTx {
-  net_sompi?: number | null;
-  timestamp_ms?: number | null;
-  day_brt?: string | null;
+export interface TxRow {
+  tx_id: string;
+  block_hash: string;
+  daa_score: number;
+  net_sompi: number | null;
+  /** 0 = pendente de timestamp; >0 = resolvido. */
+  timestamp_ms: number;
+  day_brt: string | null;
 }
 
 export interface PriceSnapshotRow {
@@ -56,6 +61,24 @@ class KrxDB extends Dexie {
       price_history: '++id, captured_ms',
       meta: 'key',
     });
+    // v2: timestamp_ms nunca null (0 = pendente) para indexar pending; daa_score indexado.
+    this.version(2)
+      .stores({
+        txs: 'tx_id, day_brt, timestamp_ms, daa_score',
+        price_snapshots: 'day_brt',
+        price_history: '++id, captured_ms',
+        meta: 'key',
+      })
+      .upgrade(async (tx) => {
+        await tx
+          .table('txs')
+          .toCollection()
+          .modify((row: TxRow) => {
+            if (row.timestamp_ms == null || (row.timestamp_ms as unknown) === null) {
+              row.timestamp_ms = 0;
+            }
+          });
+      });
   }
 }
 
@@ -70,18 +93,27 @@ export async function setMeta(key: string, value: string): Promise<void> {
   await db.meta.put({ key, value });
 }
 
-export async function insertTxIfNew(tx: RawTx): Promise<boolean> {
-  const existing = await db.txs.get(tx.tx_id);
-  if (existing) return false;
-  await db.txs.add({
-    tx_id: tx.tx_id,
-    block_hash: tx.block_hash,
-    daa_score: tx.daa_score,
-    net_sompi: null,
-    timestamp_ms: null,
-    day_brt: null,
-  });
-  return true;
+/** Insere página inteira de uma vez. Retorna quantas eram novas. */
+export async function bulkUpsertListedTxs(txs: ListedTx[]): Promise<number> {
+  if (txs.length === 0) return 0;
+  const ids = txs.map((t) => t.tx_id);
+  const existing = await db.txs.bulkGet(ids);
+  const existingSet = new Set(
+    existing.filter(Boolean).map((r) => (r as TxRow).tx_id),
+  );
+  const fresh = txs.filter((t) => !existingSet.has(t.tx_id));
+  if (fresh.length === 0) return 0;
+  await db.txs.bulkAdd(
+    fresh.map((t) => ({
+      tx_id: t.tx_id,
+      block_hash: t.block_hash,
+      daa_score: t.daa_score,
+      net_sompi: t.net_sompi,
+      timestamp_ms: 0,
+      day_brt: null,
+    })),
+  );
+  return fresh.length;
 }
 
 export async function txCount(): Promise<number> {
@@ -93,12 +125,36 @@ export async function wipeTxs(): Promise<void> {
 }
 
 export async function pendingTxIds(limit: number): Promise<string[]> {
-  const rows = await db.txs.filter((t) => t.timestamp_ms == null).limit(limit).toArray();
+  const rows = await db.txs.where('timestamp_ms').equals(0).limit(limit).toArray();
   return rows.map((r) => r.tx_id);
 }
 
 export async function pendingCount(): Promise<number> {
-  return db.txs.filter((t) => t.timestamp_ms == null).count();
+  return db.txs.where('timestamp_ms').equals(0).count();
+}
+
+export async function pendingTxRows(limit: number): Promise<TxRow[]> {
+  return db.txs.where('timestamp_ms').equals(0).limit(limit).toArray();
+}
+
+/** Aplica timestamps estimados em lote (por daa clock). */
+export async function applyEstimatedTimestamps(
+  updates: Array<{ tx_id: string; timestamp_ms: number; day_brt: string }>,
+): Promise<void> {
+  if (updates.length === 0) return;
+  const ids = updates.map((u) => u.tx_id);
+  const rows = await db.txs.bulkGet(ids);
+  const merged: TxRow[] = [];
+  for (let i = 0; i < updates.length; i++) {
+    const row = rows[i];
+    if (!row) continue;
+    merged.push({
+      ...row,
+      timestamp_ms: updates[i].timestamp_ms,
+      day_brt: updates[i].day_brt,
+    });
+  }
+  if (merged.length > 0) await db.txs.bulkPut(merged);
 }
 
 export async function applyTxDetail(
@@ -175,6 +231,15 @@ export async function dailyReceived(from: string, to: string): Promise<DailyRow[
     .map(([day, v]) => ({ day, ...v }))
     .filter((r) => r.received_sompi > 0)
     .sort((a, b) => a.day.localeCompare(b.day));
+}
+
+export async function firstReceivedDay(): Promise<string | undefined> {
+  const rows = await db.txs
+    .orderBy('day_brt')
+    .filter((t) => t.day_brt != null && (t.net_sompi ?? 0) > 0)
+    .limit(1)
+    .toArray();
+  return rows[0]?.day_brt ?? undefined;
 }
 
 export async function receivedOnDay(

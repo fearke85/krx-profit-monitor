@@ -25,3 +25,22 @@ export function daysAgoBrt(n: number): string {
   const dd = String(dt.getUTCDate()).padStart(2, '0');
   return `${yy}-${mm}-${dd}`;
 }
+
+/** Lista inclusiva de dias-calendário "YYYY-MM-DD" entre from e to (ordem crescente). */
+export function eachDayBrt(from: string, to: string): string[] {
+  if (from > to) return [];
+  const [fy, fm, fd] = from.split('-').map(Number);
+  const [ty, tm, td] = to.split('-').map(Number);
+  let ms = Date.UTC(fy, fm - 1, fd);
+  const end = Date.UTC(ty, tm - 1, td);
+  const out: string[] = [];
+  while (ms <= end) {
+    const dt = new Date(ms);
+    const yy = dt.getUTCFullYear();
+    const mm = String(dt.getUTCMonth() + 1).padStart(2, '0');
+    const dd = String(dt.getUTCDate()).padStart(2, '0');
+    out.push(`${yy}-${mm}-${dd}`);
+    ms += 86_400_000;
+  }
+  return out;
+}

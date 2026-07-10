@@ -7,13 +7,14 @@ import {
   normalizeAddress,
   dailyReceived,
   receivedOnDay,
+  firstReceivedDay,
   getPriceSnapshot,
   getPriceRange,
   getMeta,
   txCount,
   pendingCount,
 } from './db';
-import { todayBrt, daysAgoBrt } from './day';
+import { todayBrt, daysAgoBrt, eachDayBrt } from './day';
 import { syncStatus } from './sync';
 
 const toKrx = (sompi: number) => sompi / SOMPI_PER_KRX;
@@ -134,33 +135,50 @@ export async function getSummary(): Promise<Summary> {
   };
 }
 
+async function priceForDay(
+  day: string,
+  today: string,
+  current: number,
+): Promise<{ priceUsed: number; priceSource: 'current' | 'snapshot' }> {
+  if (day === today) return { priceUsed: current, priceSource: 'current' };
+  const snapshot = await getPriceSnapshot(day);
+  if (snapshot !== undefined) return { priceUsed: snapshot, priceSource: 'snapshot' };
+  return { priceUsed: current, priceSource: 'current' };
+}
+
+/**
+ * Histórico diário de KRX produzido (recebido on-chain).
+ * Preenche todos os dias-calendário do intervalo (zeros nos dias sem produção),
+ * para o gráfico/tabela mostrarem a série contínua.
+ */
 export async function getDaily(from?: string, to?: string): Promise<DailyResponse> {
   const toDay = to ?? todayBrt();
-  const fromDay = from ?? daysAgoBrt(29);
+  let fromDay = from ?? daysAgoBrt(29);
+
+  // "Tudo" (from omitido): começa no primeiro dia com produção.
+  if (from === undefined) {
+    fromDay = (await firstReceivedDay()) ?? todayBrt();
+  } else if (fromDay < daysAgoBrt(120)) {
+    // Janelas longas: não preencher zeros antes da primeira produção.
+    const first = await firstReceivedDay();
+    if (first && first > fromDay) fromDay = first;
+  }
+
   const current = await currentPrice();
   const today = todayBrt();
   const rows = await dailyReceived(fromDay, toDay);
+  const byDay = new Map(rows.map((r) => [r.day, r]));
 
   const days: DailyRowView[] = [];
-  for (const r of rows) {
-    const receivedKrx = toKrx(r.received_sompi);
-    const snapshot = await getPriceSnapshot(r.day);
-    let priceUsed: number;
-    let priceSource: 'current' | 'snapshot';
-    if (r.day === today) {
-      priceUsed = current;
-      priceSource = 'current';
-    } else if (snapshot !== undefined) {
-      priceUsed = snapshot;
-      priceSource = 'snapshot';
-    } else {
-      priceUsed = current;
-      priceSource = 'current';
-    }
+  for (const day of eachDayBrt(fromDay, toDay)) {
+    const r = byDay.get(day);
+    const receivedKrx = r ? toKrx(r.received_sompi) : 0;
+    const txCount = r?.tx_count ?? 0;
+    const { priceUsed, priceSource } = await priceForDay(day, today, current);
     days.push({
-      day: r.day,
+      day,
       received_krx: receivedKrx,
-      tx_count: r.tx_count,
+      tx_count: txCount,
       price_usd_used: priceUsed,
       price_source: priceSource,
       est_usdt: receivedKrx * priceUsed,

@@ -13,26 +13,22 @@ import WalletForm from './components/WalletForm';
 import AccordionItem from './components/Accordion';
 import StrategyPanel from './components/StrategyPanel';
 import { startSync, subscribeSync, syncStatus, triggerSync } from './lib/sync';
+import { daysAgoBrt } from './lib/day';
 
-const RANGES: Array<{ key: string; days: number }> = [
+const RANGES: Array<{ key: string; days: number | 'all' }> = [
   { key: 'range.7d', days: 7 },
   { key: 'range.30d', days: 30 },
   { key: 'range.90d', days: 90 },
-  { key: 'range.all', days: 3650 },
+  { key: 'range.all', days: 'all' },
 ];
 
 const AUTO_REFRESH_MS = 5 * 60_000;
-
-function isoDaysAgo(n: number): string {
-  const d = new Date(Date.now() - n * 86_400_000);
-  return d.toISOString().slice(0, 10);
-}
 
 export default function App() {
   const { t, lang, setLang, theme, toggleTheme } = useSettings();
   const [summary, setSummary] = useState<Summary | null>(null);
   const [daily, setDaily] = useState<DailyResponse | null>(null);
-  const [rangeDays, setRangeDays] = useState(30);
+  const [rangeDays, setRangeDays] = useState<number | 'all'>(30);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<number | null>(null);
@@ -47,7 +43,7 @@ export default function App() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const from = isoDaysAgo(rangeDays - 1);
+      const from = rangeDays === 'all' ? undefined : daysAgoBrt(rangeDays - 1);
       const [s, d] = await Promise.all([getSummary(), getDaily(from)]);
       setSummary(s);
       setDaily(d);
@@ -166,7 +162,7 @@ export default function App() {
               <div className="ranges">
                 {RANGES.map((r) => (
                   <button
-                    key={r.days}
+                    key={r.key}
                     className={rangeDays === r.days ? 'active' : ''}
                     onClick={() => setRangeDays(r.days)}
                   >
@@ -175,6 +171,11 @@ export default function App() {
                 ))}
               </div>
             </div>
+            {daily && daily.days.length > 0 && (
+              <p className="daily-meta">
+                {t('daily.periodMeta', { from: daily.from, to: daily.to })}
+              </p>
+            )}
             {daily && <DailyChart days={daily.days} />}
             {daily && <DailyTable days={daily.days} />}
           </AccordionItem>
