@@ -94,15 +94,23 @@ interface TxDetailRaw {
   block: { timestamp_ms: number; daa_score?: number };
   inputs: TxIO[];
   outputs: TxIO[];
+  is_accepted?: boolean;
+  confirmations?: number;
 }
 
 export interface TxDetail {
   timestampMs: number;
   netSompi: number;
   daaScore?: number;
+  /** Aceita pelo consenso — só então o valor credita no saldo do endereço. */
+  isAccepted: boolean;
+  confirmations: number;
 }
 
-/** Detalhe completo — usado só para calibrar o relógio DAA→timestamp (poucas amostras). */
+/**
+ * Detalhe completo — usado para verificar aceitação de txs recentes (a listagem
+ * do endereço inclui txs apenas incluídas em bloco, antes de creditarem saldo).
+ */
 export async function getTxDetail(address: string, txId: string): Promise<TxDetail> {
   const data = await fetchJson<TxDetailRaw>(
     `${KERYX_API}/transactions/${encodeURIComponent(txId)}`,
@@ -117,6 +125,46 @@ export async function getTxDetail(address: string, txId: string): Promise<TxDeta
     timestampMs: data.block.timestamp_ms,
     netSompi: outs - ins,
     daaScore: data.block.daa_score,
+    isAccepted: data.is_accepted === true,
+    confirmations: data.confirmations ?? 0,
+  };
+}
+
+export interface RecentBlock {
+  daaScore: number;
+  timestampMs: number;
+}
+
+/**
+ * Blocos recentes com (daa_score, timestamp_ms) prontos — 1 request substitui
+ * dezenas de leituras de bloco individuais na calibração do relógio DAA.
+ */
+export async function getRecentBlocks(limit = 100): Promise<RecentBlock[]> {
+  const data = await fetchJson<Array<{ daa_score: number; timestamp_ms: number }>>(
+    `${KERYX_API}/blocks?limit=${limit}`,
+  );
+  return (data ?? [])
+    .filter((b) => b.daa_score > 0 && b.timestamp_ms > 0)
+    .map((b) => ({ daaScore: b.daa_score, timestampMs: b.timestamp_ms }));
+}
+
+export interface NetworkInfo {
+  blockRewardKrx: number;
+  hashrateHps: number;
+  network: string;
+}
+
+/** Info de consenso da rede (recompensa de bloco cheia e hashrate atual). */
+export async function getNetworkInfo(): Promise<NetworkInfo> {
+  const data = await fetchJson<{
+    block_reward_krx: number;
+    hashrate_hps: number;
+    network: string;
+  }>(`${KERYX_API}/info`);
+  return {
+    blockRewardKrx: data.block_reward_krx,
+    hashrateHps: data.hashrate_hps,
+    network: data.network,
   };
 }
 

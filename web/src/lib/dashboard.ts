@@ -80,7 +80,7 @@ export interface StrategyData {
   deposit_alert: boolean;
 }
 
-async function currentPrice(): Promise<number> {
+export async function currentPrice(): Promise<number> {
   const snap = await getPriceSnapshot(todayBrt());
   if (snap && snap > 0) return snap;
   try {

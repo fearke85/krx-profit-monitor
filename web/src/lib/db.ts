@@ -1,11 +1,5 @@
 import Dexie, { type Table } from 'dexie';
-import type { ListedTx } from './keryx';
-
-export interface RawTx {
-  tx_id: string;
-  block_hash: string;
-  daa_score: number;
-}
+import { todayBrt } from './day';
 
 export interface TxRow {
   tx_id: string;
@@ -15,6 +9,12 @@ export interface TxRow {
   /** 0 = pendente de timestamp; >0 = resolvido. */
   timestamp_ms: number;
   day_brt: string | null;
+  /**
+   * Aceitação pelo consenso: 1 = aceita (conta como produção),
+   * 0 = pendente de verificação (listada mas ainda não creditou saldo),
+   * -1 = rejeitada (nunca aceita — não conta).
+   */
+  accepted: number;
 }
 
 export interface PriceSnapshotRow {
@@ -32,6 +32,14 @@ export interface PriceHistoryRow {
 export interface MetaRow {
   key: string;
   value: string;
+}
+
+/** Previsão diária da calculadora (última previsão registrada no dia). */
+export interface CalcSnapshotRow {
+  day_brt: string;
+  predicted_krx: number;
+  price_usd: number;
+  captured_ms: number;
 }
 
 export interface DailyRow {
@@ -52,6 +60,7 @@ class KrxDB extends Dexie {
   price_snapshots!: Table<PriceSnapshotRow, string>;
   price_history!: Table<PriceHistoryRow, number>;
   meta!: Table<MetaRow, string>;
+  calc_snapshots!: Table<CalcSnapshotRow, string>;
 
   constructor() {
     super('krx-profit-monitor');
@@ -79,6 +88,33 @@ class KrxDB extends Dexie {
             }
           });
       });
+    // v3: snapshots diários de previsão da calculadora (previsto × realizado).
+    this.version(3).stores({
+      txs: 'tx_id, day_brt, timestamp_ms, daa_score',
+      price_snapshots: 'day_brt',
+      price_history: '++id, captured_ms',
+      meta: 'key',
+      calc_snapshots: 'day_brt',
+    });
+    // v4: flag de aceitação pelo consenso. Rows históricas assumem aceitas;
+    // receives de hoje voltam para "pendente" e são reverificados no próximo ciclo.
+    this.version(4)
+      .stores({
+        txs: 'tx_id, day_brt, timestamp_ms, daa_score, accepted',
+        price_snapshots: 'day_brt',
+        price_history: '++id, captured_ms',
+        meta: 'key',
+        calc_snapshots: 'day_brt',
+      })
+      .upgrade(async (tx) => {
+        const today = todayBrt();
+        await tx
+          .table('txs')
+          .toCollection()
+          .modify((row: TxRow) => {
+            row.accepted = row.day_brt === today && (row.net_sompi ?? 0) > 0 ? 0 : 1;
+          });
+      });
   }
 }
 
@@ -93,27 +129,27 @@ export async function setMeta(key: string, value: string): Promise<void> {
   await db.meta.put({ key, value });
 }
 
-/** Insere página inteira de uma vez. Retorna quantas eram novas. */
-export async function bulkUpsertListedTxs(txs: ListedTx[]): Promise<number> {
-  if (txs.length === 0) return 0;
-  const ids = txs.map((t) => t.tx_id);
-  const existing = await db.txs.bulkGet(ids);
-  const existingSet = new Set(
-    existing.filter(Boolean).map((r) => (r as TxRow).tx_id),
-  );
-  const fresh = txs.filter((t) => !existingSet.has(t.tx_id));
-  if (fresh.length === 0) return 0;
-  await db.txs.bulkAdd(
-    fresh.map((t) => ({
-      tx_id: t.tx_id,
-      block_hash: t.block_hash,
-      daa_score: t.daa_score,
-      net_sompi: t.net_sompi,
-      timestamp_ms: 0,
-      day_brt: null,
-    })),
-  );
-  return fresh.length;
+/**
+ * Insere página inteira de uma vez, sem leitura prévia de dedupe:
+ * ids já existentes falham individualmente no bulkAdd (BulkError) e são
+ * ignorados — Dexie mantém as inserções que deram certo quando o erro é
+ * capturado. Retorna quantas eram novas.
+ */
+export async function bulkAddTxRows(rows: TxRow[]): Promise<number> {
+  if (rows.length === 0) return 0;
+  try {
+    await db.txs.bulkAdd(rows);
+    return rows.length;
+  } catch (err) {
+    if (err instanceof Dexie.BulkError) return rows.length - err.failures.length;
+    throw err;
+  }
+}
+
+/** Regrava rows completas (usado para carimbar timestamps em lote). */
+export async function bulkPutTxRows(rows: TxRow[]): Promise<void> {
+  if (rows.length === 0) return;
+  await db.txs.bulkPut(rows);
 }
 
 export async function txCount(): Promise<number> {
@@ -124,11 +160,6 @@ export async function wipeTxs(): Promise<void> {
   await db.txs.clear();
 }
 
-export async function pendingTxIds(limit: number): Promise<string[]> {
-  const rows = await db.txs.where('timestamp_ms').equals(0).limit(limit).toArray();
-  return rows.map((r) => r.tx_id);
-}
-
 export async function pendingCount(): Promise<number> {
   return db.txs.where('timestamp_ms').equals(0).count();
 }
@@ -137,37 +168,9 @@ export async function pendingTxRows(limit: number): Promise<TxRow[]> {
   return db.txs.where('timestamp_ms').equals(0).limit(limit).toArray();
 }
 
-/** Aplica timestamps estimados em lote (por daa clock). */
-export async function applyEstimatedTimestamps(
-  updates: Array<{ tx_id: string; timestamp_ms: number; day_brt: string }>,
-): Promise<void> {
-  if (updates.length === 0) return;
-  const ids = updates.map((u) => u.tx_id);
-  const rows = await db.txs.bulkGet(ids);
-  const merged: TxRow[] = [];
-  for (let i = 0; i < updates.length; i++) {
-    const row = rows[i];
-    if (!row) continue;
-    merged.push({
-      ...row,
-      timestamp_ms: updates[i].timestamp_ms,
-      day_brt: updates[i].day_brt,
-    });
-  }
-  if (merged.length > 0) await db.txs.bulkPut(merged);
-}
-
-export async function applyTxDetail(
-  txId: string,
-  netSompi: number,
-  timestampMs: number,
-  dayBrt: string,
-): Promise<void> {
-  await db.txs.update(txId, {
-    net_sompi: netSompi,
-    timestamp_ms: timestampMs,
-    day_brt: dayBrt,
-  });
+/** Txs aguardando verificação de aceitação pelo consenso. */
+export async function unverifiedTxRows(limit: number): Promise<TxRow[]> {
+  return db.txs.where('accepted').equals(0).limit(limit).toArray();
 }
 
 export async function snapshotPrice(
@@ -211,11 +214,23 @@ export async function prunePriceHistory(retentionHours: number): Promise<void> {
   await db.price_history.where('captured_ms').below(cutoff).delete();
 }
 
+export async function putCalcSnapshot(row: CalcSnapshotRow): Promise<void> {
+  await db.calc_snapshots.put(row);
+}
+
+export async function getCalcSnapshot(dayBrt: string): Promise<CalcSnapshotRow | undefined> {
+  return db.calc_snapshots.get(dayBrt);
+}
+
+export async function getCalcSnapshots(from: string, to: string): Promise<CalcSnapshotRow[]> {
+  return db.calc_snapshots.where('day_brt').between(from, to, true, true).sortBy('day_brt');
+}
+
 export async function dailyReceived(from: string, to: string): Promise<DailyRow[]> {
   const rows = await db.txs
     .where('day_brt')
     .between(from, to, true, true)
-    .filter((t) => t.day_brt != null && (t.net_sompi ?? 0) > 0)
+    .filter((t) => t.day_brt != null && (t.net_sompi ?? 0) > 0 && (t.accepted ?? 1) === 1)
     .toArray();
 
   const byDay = new Map<string, { received_sompi: number; tx_count: number }>();
@@ -236,7 +251,7 @@ export async function dailyReceived(from: string, to: string): Promise<DailyRow[
 export async function firstReceivedDay(): Promise<string | undefined> {
   const rows = await db.txs
     .orderBy('day_brt')
-    .filter((t) => t.day_brt != null && (t.net_sompi ?? 0) > 0)
+    .filter((t) => t.day_brt != null && (t.net_sompi ?? 0) > 0 && (t.accepted ?? 1) === 1)
     .limit(1)
     .toArray();
   return rows[0]?.day_brt ?? undefined;
@@ -249,7 +264,7 @@ export async function receivedOnDay(
   let received_sompi = 0;
   let tx_count = 0;
   for (const t of rows) {
-    if ((t.net_sompi ?? 0) > 0) {
+    if ((t.net_sompi ?? 0) > 0 && (t.accepted ?? 1) === 1) {
       received_sompi += t.net_sompi ?? 0;
       tx_count += 1;
     }

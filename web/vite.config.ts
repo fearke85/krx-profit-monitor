@@ -51,8 +51,54 @@ function priceApiPlugin(): Plugin {
   };
 }
 
+const FX_URL = 'https://economia.awesomeapi.com.br/json/last/USD-BRL';
+
+/** Em dev, /api/fx roda no Vite (câmbio USD→BRL). */
+function fxApiPlugin(): Plugin {
+  return {
+    name: 'krx-fx-api',
+    configureServer(server) {
+      server.middlewares.use('/api/fx', async (req, res) => {
+        if (req.method && req.method !== 'GET' && req.method !== 'HEAD') {
+          res.statusCode = 405;
+          res.setHeader('content-type', 'application/json');
+          res.end(JSON.stringify({ error: 'method not allowed' }));
+          return;
+        }
+        try {
+          const upstream = await fetch(FX_URL, {
+            headers: { accept: 'application/json' },
+            signal: AbortSignal.timeout(8_000),
+          });
+          if (!upstream.ok) {
+            res.statusCode = 502;
+            res.setHeader('content-type', 'application/json');
+            res.end(JSON.stringify({ error: 'fx upstream unavailable' }));
+            return;
+          }
+          const data = (await upstream.json()) as { USDBRL?: { bid?: string } };
+          const rate = Number(data.USDBRL?.bid ?? NaN);
+          if (!Number.isFinite(rate) || rate <= 0) {
+            res.statusCode = 502;
+            res.setHeader('content-type', 'application/json');
+            res.end(JSON.stringify({ error: 'invalid fx rate' }));
+            return;
+          }
+          res.statusCode = 200;
+          res.setHeader('content-type', 'application/json');
+          res.end(JSON.stringify({ usd_brl: rate, fetched_ms: Date.now() }));
+        } catch {
+          res.statusCode = 502;
+          res.setHeader('content-type', 'application/json');
+          res.end(JSON.stringify({ error: 'fx unavailable' }));
+        }
+      });
+    },
+  };
+}
+
 export default defineConfig({
-  plugins: [react(), priceApiPlugin()],
+  plugins: [react(), priceApiPlugin(), fxApiPlugin()],
   server: {
     port: 5173,
   },

@@ -12,7 +12,9 @@ import DailyTable from './components/DailyTable';
 import WalletForm from './components/WalletForm';
 import AccordionItem from './components/Accordion';
 import StrategyPanel from './components/StrategyPanel';
+import CalculatorPanel from './components/CalculatorPanel';
 import { startSync, subscribeSync, syncStatus, triggerSync } from './lib/sync';
+import { snapshotTodayIfConfigured } from './lib/calculator';
 import { daysAgoBrt } from './lib/day';
 
 const RANGES: Array<{ key: string; days: number | 'all' }> = [
@@ -34,9 +36,12 @@ export default function App() {
   const [lastUpdated, setLastUpdated] = useState<number | null>(null);
   const [showWalletForm, setShowWalletForm] = useState(false);
   const [syncTick, setSyncTick] = useState(0);
+  const [tab, setTab] = useState<'dashboard' | 'calculator'>('dashboard');
 
   useEffect(() => {
     startSync();
+    // Registra a previsão do dia da calculadora (se configurada) mesmo sem abrir a aba.
+    void snapshotTodayIfConfigured();
     return subscribeSync(() => setSyncTick((n) => n + 1));
   }, []);
 
@@ -126,6 +131,21 @@ export default function App() {
         <p className="subtitle">{t('app.subtitle')}</p>
       </header>
 
+      <nav className="tabs">
+        <button
+          className={tab === 'dashboard' ? 'active' : ''}
+          onClick={() => setTab('dashboard')}
+        >
+          {t('tab.dashboard')}
+        </button>
+        <button
+          className={tab === 'calculator' ? 'active' : ''}
+          onClick={() => setTab('calculator')}
+        >
+          {t('tab.calculator')}
+        </button>
+      </nav>
+
       {error && <div className="error">{t('app.error', { msg: error })}</div>}
 
       {!summary && !error && <div className="sync-bar">{t('app.loading')}</div>}
@@ -140,7 +160,9 @@ export default function App() {
         </div>
       )}
 
-      {summary && (needsAddress || showWalletForm) ? (
+      {tab === 'calculator' ? (
+        <CalculatorPanel />
+      ) : summary && (needsAddress || showWalletForm) ? (
         <WalletForm
           current={summary.address}
           onSaved={() => {

@@ -16,6 +16,14 @@ export const fmtUsdt = (v: number) =>
 export const fmtPrice = (v: number) =>
   v.toLocaleString(locale, { minimumFractionDigits: 2, maximumFractionDigits: 8 });
 
+export const fmtMoney = (v: number, currency: 'USD' | 'BRL') =>
+  v.toLocaleString(locale, {
+    style: 'currency',
+    currency,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+
 export function fmtTime(ms: number): string {
   if (!ms) return '—';
   // Sempre no fuso do report (Brasília), mas com o locale do idioma selecionado.
