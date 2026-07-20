@@ -154,7 +154,44 @@ export interface NetworkInfo {
   network: string;
 }
 
-/** Info de consenso da rede (recompensa de bloco cheia e hashrate atual). */
+/** Janela real de média (client-side). O `period=` da API não é confiável. */
+const HASHRATE_WINDOW_MS = 2 * 60 * 60 * 1000;
+const HASHRATE_MIN_POINTS = 3;
+
+export type HashrateSource = '2h' | 'info';
+
+/**
+ * Hashrate efetivo para a calculadora.
+ *
+ * Busca `/hashrate-history?period=24h` só como bucket de pontos (o label
+ * `period` da API é inconsistente: `1h` vem vazio; `2h` ≡ `24h` com ~18h de
+ * dados). Filtra no cliente `timestamp_ms >= now − 2h` e tira a média.
+ * Se houver menos de 3 pontos na janela, retorna 0 → o chamador usa
+ * `hashrate_hps` do `/info` (current).
+ */
+export async function getEffectiveNetworkHashrate(): Promise<{
+  hashrateHps: number;
+  source: HashrateSource;
+}> {
+  try {
+    const data = await fetchJson<{
+      points?: Array<{ hashrate_hps: number; timestamp_ms: number }>;
+    }>(`${KERYX_API}/hashrate-history?period=24h`);
+    const cutoff = Date.now() - HASHRATE_WINDOW_MS;
+    const recent = (data.points ?? []).filter(
+      (p) => p.hashrate_hps > 0 && p.timestamp_ms >= cutoff,
+    );
+    if (recent.length < HASHRATE_MIN_POINTS) {
+      return { hashrateHps: 0, source: 'info' };
+    }
+    const sum = recent.reduce((a, p) => a + p.hashrate_hps, 0);
+    return { hashrateHps: sum / recent.length, source: '2h' };
+  } catch {
+    return { hashrateHps: 0, source: 'info' };
+  }
+}
+
+/** Info de consenso da rede (recompensa de bloco e hashrate atual). */
 export async function getNetworkInfo(): Promise<NetworkInfo> {
   const data = await fetchJson<{
     block_reward_krx: number;

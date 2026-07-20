@@ -87,12 +87,12 @@ const DICT: Record<Lang, Record<string, string>> = {
     'tab.calculator': 'Calculadora',
     'calc.title': 'Calculadora de rentabilidade',
     'calc.intro':
-      'Estime a produção de KRX e o lucro a partir do seu hashrate. O cálculo usa o hashrate e a recompensa de bloco atuais da rede (API do nó) e o preço KRX/USDT da nonkyc.',
+      'Estime a produção de KRX e o lucro a partir do seu hashrate. O cálculo usa hashrate e recompensa de bloco do explorer Keryx Labs e o preço KRX/USDT da nonkyc.',
     'calc.hashrate': 'Hashrate',
     'calc.bracket': 'Bracket (holder reward)',
     'calc.bracketOpt': 'Bracket {id} · {req} produção diária · {pct}%',
     'calc.bracketHint':
-      'O bracket vem do holder reward: quanto mais KRX o minerador mantém (effective balance, coin-age) em relação à produção de 24h, maior a fração da recompensa (50% → 100%). Minerando SOLO, vale o SEU bracket (busque seu endereço no Explorer). Minerando em POOL, vale o bracket da POOL — a suprnova opera em 100% (escolha o Bracket 8) e cobra 1% de fee. Obs.: pools costumam exibir estimativas propositalmente conservadoras (a suprnova aplica ~0,90 × 0,85 sobre a conta bruta).',
+      'O bracket vem do holder reward: quanto mais KRX o minerador mantém (effective balance, coin-age) em relação à produção de 24h, maior a fração da recompensa (50% → 100%). Minerando SOLO, vale o SEU bracket (busque seu endereço no Explorer). Minerando em POOL, vale o bracket da POOL — confira o keeper atual na página dela, pois muda com o tempo.',
     'calc.feeToggle': 'Fee (pool/minerador)',
     'calc.currency': 'Moeda',
     'calc.kwh': 'Energia ({cur}/kWh)',
@@ -115,10 +115,11 @@ const DICT: Record<Lang, Record<string, string>> = {
     'calc.periodWeek': 'Semana (7d)',
     'calc.periodMonth': 'Mês (30d)',
     'calc.netMeta':
-      'Rede: {hashrate} · 10 blocos/s · Recompensa média paga/bloco: {reward} KRX (⅔ do nominal {nominal}) · Preço: {price} USDT (nonkyc)',
+      'Rede (Keryx Labs): {hashrate}{smoothed} · 10 blocos/s · Recompensa/bloco: {reward} KRX · Preço: {price} USDT (nonkyc)',
+    'calc.netMetaSmoothed2h': ' (média ~2h)',
     'calc.fxLabel': ' · USD/BRL: {rate}',
     'calc.disclaimer':
-      'Estimativa: assume hashrate da rede, dificuldade, bracket e preço constantes. A produção real varia com a sorte e as condições da rede.',
+      'Estimativa explorer-first: assume hashrate da rede, bracket e preço constantes. A produção real varia com a sorte e as condições da rede. Estimativas de pool servem só para comparação.',
     'calc.chartTitle': 'Previsto × realizado (KRX/dia)',
     'calc.predicted': 'Previsto',
     'calc.actual': 'Realizado',
@@ -204,12 +205,12 @@ const DICT: Record<Lang, Record<string, string>> = {
     'tab.calculator': 'Calculator',
     'calc.title': 'Profitability calculator',
     'calc.intro':
-      'Estimate KRX production and profit from your hashrate. It uses the network’s current hashrate and block reward (node API) and the KRX/USDT price from nonkyc.',
+      'Estimate KRX production and profit from your hashrate. It uses network hashrate and block reward from the Keryx Labs explorer and the KRX/USDT price from nonkyc.',
     'calc.hashrate': 'Hashrate',
     'calc.bracket': 'Bracket (holder reward)',
     'calc.bracketOpt': 'Bracket {id} · {req} daily production · {pct}%',
     'calc.bracketHint':
-      'The bracket comes from the holder reward: the more KRX the miner holds (effective balance, coin-age) relative to 24h production, the bigger the share of the block reward (50% → 100%). Mining SOLO, YOUR bracket applies (search your address on the Explorer). Mining on a POOL, the POOL’s bracket applies — suprnova runs at 100% (pick Bracket 8) and charges a 1% fee. Note: pools tend to display deliberately conservative estimates (suprnova applies ~0.90 × 0.85 on top of the raw math).',
+      'The bracket comes from the holder reward: the more KRX the miner holds (effective balance, coin-age) relative to 24h production, the bigger the share of the block reward (50% → 100%). Mining SOLO, YOUR bracket applies (search your address on the Explorer). Mining on a POOL, the POOL’s bracket applies — check its current keeper on the pool page, as it drifts over time.',
     'calc.feeToggle': 'Fee (pool/miner)',
     'calc.currency': 'Currency',
     'calc.kwh': 'Electricity ({cur}/kWh)',
@@ -232,10 +233,11 @@ const DICT: Record<Lang, Record<string, string>> = {
     'calc.periodWeek': 'Week (7d)',
     'calc.periodMonth': 'Month (30d)',
     'calc.netMeta':
-      'Network: {hashrate} · 10 blocks/s · Avg paid reward/block: {reward} KRX (⅔ of nominal {nominal}) · Price: {price} USDT (nonkyc)',
+      'Network (Keryx Labs): {hashrate}{smoothed} · 10 blocks/s · Reward/block: {reward} KRX · Price: {price} USDT (nonkyc)',
+    'calc.netMetaSmoothed2h': ' (~2h avg)',
     'calc.fxLabel': ' · USD/BRL: {rate}',
     'calc.disclaimer':
-      'Estimate: assumes constant network hashrate, difficulty, bracket and price. Actual production varies with luck and network conditions.',
+      'Explorer-first estimate: assumes constant network hashrate, bracket and price. Actual production varies with luck and network conditions. Pool estimates are for comparison only.',
     'calc.chartTitle': 'Predicted × realized (KRX/day)',
     'calc.predicted': 'Predicted',
     'calc.actual': 'Realized',

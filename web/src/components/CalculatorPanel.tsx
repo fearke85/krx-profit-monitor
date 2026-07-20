@@ -3,7 +3,6 @@ import {
   BRACKETS,
   DEFAULT_CONFIG,
   HASH_UNITS,
-  PAID_BLOCK_RATIO,
   buildResult,
   getComparison,
   getUsdBrl,
@@ -14,12 +13,11 @@ import {
   type CompareRow,
   type Currency,
 } from '../lib/calculator';
-import { getNetworkInfo, type NetworkInfo } from '../lib/keryx';
+import { getEffectiveNetworkHashrate, getNetworkInfo, type HashrateSource, type NetworkInfo } from '../lib/keryx';
 import { currentPrice } from '../lib/dashboard';
 import { fmtKrx, fmtMoney, fmtNum, fmtPrice } from '../format';
 import { useSettings } from '../settings';
 import CalcCompareChart from './CalcCompareChart';
-
 const REFRESH_MS = 5 * 60_000;
 
 function fmtHashrate(hps: number): string {
@@ -85,6 +83,8 @@ export default function CalculatorPanel() {
   const { t } = useSettings();
   const [cfg, setCfg] = useState<CalcConfig | null>(null);
   const [net, setNet] = useState<NetworkInfo | null>(null);
+  /** Fonte do hashrate exibido: média 1h / 24h do history, ou instantâneo /info. */
+  const [hashSource, setHashSource] = useState<HashrateSource>('info');
   const [priceUsd, setPriceUsd] = useState(0);
   const [usdBrl, setUsdBrl] = useState(0);
   const [compare, setCompare] = useState<CompareRow[]>([]);
@@ -100,9 +100,16 @@ export default function CalculatorPanel() {
     let cancelled = false;
     async function fetchData() {
       try {
-        const [n, p, fx] = await Promise.all([getNetworkInfo(), currentPrice(), getUsdBrl()]);
+        const [n, eff, p, fx] = await Promise.all([
+          getNetworkInfo(),
+          getEffectiveNetworkHashrate(),
+          currentPrice(),
+          getUsdBrl(),
+        ]);
         if (cancelled) return;
-        setNet(n);
+        const hps = eff.hashrateHps > 0 ? eff.hashrateHps : n.hashrateHps;
+        setNet({ ...n, hashrateHps: hps });
+        setHashSource(eff.hashrateHps > 0 ? eff.source : 'info');
         setPriceUsd(p);
         setUsdBrl(fx);
         setError(null);
@@ -165,7 +172,6 @@ export default function CalculatorPanel() {
               </select>
             </div>
           </label>
-
           <label className="calc-field">
             <span>{t('calc.bracket')}</span>
             <select
@@ -188,7 +194,23 @@ export default function CalculatorPanel() {
             <span>{t('calc.currency')}</span>
             <select
               value={cfg.currency}
-              onChange={(e) => set('currency', e.target.value as Currency)}
+              onChange={(e) => {
+                const next = e.target.value as Currency;
+                setCfg((prev) => {
+                  if (!prev || prev.currency === next) return prev;
+                  let kwhCost = prev.kwhCost;
+                  if (usdBrl > 0) {
+                    if (prev.currency === 'USD' && next === 'BRL') {
+                      kwhCost = prev.kwhCost * usdBrl;
+                    } else if (prev.currency === 'BRL' && next === 'USD') {
+                      kwhCost = prev.kwhCost / usdBrl;
+                    }
+                    // Arredonda para evitar lixo de float no input.
+                    kwhCost = Math.round(kwhCost * 1e4) / 1e4;
+                  }
+                  return { ...prev, currency: next, kwhCost };
+                });
+              }}
             >
               <option value="USD">USD</option>
               <option value="BRL">BRL</option>
@@ -304,14 +326,13 @@ export default function CalculatorPanel() {
             <p className="calc-meta">
               {t('calc.netMeta', {
                 hashrate: fmtHashrate(result.network.hashrateHps),
-                reward: fmtKrx(result.network.blockRewardKrx * PAID_BLOCK_RATIO),
-                nominal: fmtKrx(result.network.blockRewardKrx),
+                smoothed: hashSource === '2h' ? t('calc.netMetaSmoothed2h') : '',
+                reward: fmtKrx(result.network.blockRewardKrx),
                 price: fmtPrice(result.priceUsd),
               })}
               {cfg.currency === 'BRL' && result.usdBrl > 0 &&
                 t('calc.fxLabel', { rate: fmtNum(result.usdBrl, { maximumFractionDigits: 4 }) })}
-            </p>
-            <p className="calc-hint">{t('calc.disclaimer')}</p>
+            </p>            <p className="calc-hint">{t('calc.disclaimer')}</p>
           </>
         )}
       </div>

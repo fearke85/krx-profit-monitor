@@ -1,4 +1,4 @@
-import { getNetworkInfo, type NetworkInfo } from './keryx';
+import { getEffectiveNetworkHashrate, getNetworkInfo, type NetworkInfo } from './keryx';
 import {
   getMeta,
   setMeta,
@@ -12,23 +12,13 @@ import { currentPrice } from './dashboard';
 
 /**
  * A rede Keryx (BlockDAG estilo Kaspa/Crescendo) produz 10 blocos por segundo
- * (blockTime = 0.1 s). Validado em 2026-07-19 contra a pool suprnova:
- * 22.408 blocos/h da pool ÷ 62,2% de share = 36.000 blocos/h na rede = 10 bps.
- * (O total_blocks do /info é estático/desatualizado — não usar para isso.)
+ * (blockTime = 0.1 s) — ver emission schedule do explorer Keryx Labs
+ * (https://keryx-labs.com/emission): 10 BPS · KRX/block × 10 = KRX/s.
+ * (O total_blocks do /info é estático/desatualizado — não usar para BPS.)
  */
 export const BLOCKS_PER_DAY = 864_000;
 
-/**
- * Nem todo bloco paga coinbase: a 10 bps, blocos "vermelhos" (não merged na
- * seleção GHOSTDAG) ficam sem recompensa. Média paga real por bloco = ⅔ do
- * nominal do nó — medido na suprnova em 2026-07-19: avgBlockReward 3,4969 vs
- * block_reward_krx 5,2463 (razão 0,66656). Confirmado por pagamento on-chain
- * real (≈4,87 KRX/h por MH/s).
- */
-export const PAID_BLOCK_RATIO = 2 / 3;
-
 export type Currency = 'USD' | 'BRL';
-
 export interface HashUnit {
   key: string;
   mult: number;
@@ -85,7 +75,9 @@ export interface CalcConfig {
 export const DEFAULT_CONFIG: CalcConfig = {
   hashrate: 100,
   unit: 'MH/s',
-  bracket: 0,
+  // Bracket 7 (90%) como chute inicial; o usuário deve ajustar ao keeper
+  // real (solo = endereço no Explorer; pool = bracket da pool).
+  bracket: 7,
   feeEnabled: false,
   feePct: 1,
   currency: 'USD',
@@ -99,8 +91,10 @@ export async function loadCalcConfig(): Promise<CalcConfig | null> {
   const raw = await getMeta(CONFIG_KEY);
   if (!raw) return null;
   try {
-    const parsed = JSON.parse(raw) as Partial<CalcConfig>;
-    return { ...DEFAULT_CONFIG, ...parsed };
+    // Descarta campos legados (hashScale / escala pool→nó) de configs antigas.
+    const parsed = JSON.parse(raw) as Partial<CalcConfig> & { hashScale?: unknown };
+    const { hashScale: _legacy, ...rest } = parsed;
+    return { ...DEFAULT_CONFIG, ...rest };
   } catch {
     return null;
   }
@@ -136,6 +130,10 @@ export function hashShare(cfg: CalcConfig, net: NetworkInfo): number {
 /**
  * Produção esperada em KRX/dia, já aplicando o bracket do holder reward
  * e a fee de pool/minerador (quando habilitada).
+ *
+ * Fonte da verdade: explorer Keryx Labs — hashrate_rede e block_reward_krx
+ * de /api/v1/info (+ média de /hashrate-history); 10 BPS da emission schedule.
+ * Sem fatores de calibração de pool (×0,5 / ×⅔ do hardfork H4).
  */
 export function computeKrxPerDay(cfg: CalcConfig, net: NetworkInfo): number {
   const share = hashShare(cfg, net);
@@ -143,9 +141,7 @@ export function computeKrxPerDay(cfg: CalcConfig, net: NetworkInfo): number {
   const bracketMult = BRACKETS[cfg.bracket]?.multiplier ?? BRACKETS[0].multiplier;
   const fee = cfg.feeEnabled ? Math.min(Math.max(cfg.feePct, 0), 100) / 100 : 0;
   // A dificuldade já está embutida: o hashrate da rede é derivado dela pelo nó.
-  return (
-    share * BLOCKS_PER_DAY * net.blockRewardKrx * PAID_BLOCK_RATIO * bracketMult * (1 - fee)
-  );
+  return share * BLOCKS_PER_DAY * net.blockRewardKrx * bracketMult * (1 - fee);
 }
 
 export interface PeriodResult {
@@ -222,8 +218,13 @@ export async function snapshotTodayIfConfigured(): Promise<void> {
   try {
     const cfg = await loadCalcConfig();
     if (!cfg) return;
-    const [net, priceUsd] = await Promise.all([getNetworkInfo(), currentPrice()]);
-    await snapshotPrediction(computeKrxPerDay(cfg, net), priceUsd);
+    const [net, eff, priceUsd] = await Promise.all([
+      getNetworkInfo(),
+      getEffectiveNetworkHashrate(),
+      currentPrice(),
+    ]);
+    const effNet = { ...net, hashrateHps: eff.hashrateHps > 0 ? eff.hashrateHps : net.hashrateHps };
+    await snapshotPrediction(computeKrxPerDay(cfg, effNet), priceUsd);
   } catch {
     // silencioso: snapshot é best-effort
   }
