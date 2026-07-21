@@ -21,9 +21,9 @@ KRX/dia = (seu_hashrate ÷ hashrate_da_rede)
         × (1 − fee%)                           ← fee de pool/minerador (opcional)
 ```
 
-- Hashrate da rede: média **client-side das últimas 2h** dos pontos de
-  `/hashrate-history` (bucket `period=24h`) → se &lt; 3 pontos na janela, usa
-  `hashrate_hps` do `/info` (current).
+- Hashrate da rede: seletor do usuário — **current** (`/info`) ou **média**
+  client-side das últimas **1–24 h** (bucket `/hashrate-history?period=24h`,
+  filtro por `timestamp_ms`; se &lt; 3 pontos na janela, cai no current).
 - Receita = KRX/dia × preço KRX/USDT (nonkyc), convertida para USD ou BRL.
 - Lucro = receita − energia (`consumo_W ÷ 1000 × 24h × custo_kWh` na moeda escolhida).
 - Resultados em 24 h / semana (×7) / mês (×30).
@@ -37,7 +37,7 @@ KRX/dia = (seu_hashrate ÷ hashrate_da_rede)
 
 | Dado | Fonte | Endpoint |
 |---|---|---|
-| Hashrate da rede (média ~2h filtrada), recompensa/bloco | Explorer Keryx Labs | `GET /api/v1/hashrate-history?period=24h` (bucket) + filtro `timestamp_ms ≥ now−2h` · fallback `GET /api/v1/info` (`hashrate_hps`, `block_reward_krx`) |
+| Hashrate da rede (current ou média 1–24h), recompensa/bloco | Explorer Keryx Labs | `GET /api/v1/info` (current) · ou `GET /api/v1/hashrate-history?period=24h` + filtro client-side `timestamp_ms ≥ now−Nh` · `block_reward_krx` do `/info` |
 | Taxa de blocos / emission | Emission schedule (docs + site) | [keryx-labs.com/emission](https://keryx-labs.com/emission) — **10 BPS** |
 | Preço KRX/USDT | nonkyc (via proxy próprio, CORS) | `GET /api/price` → `nonkyc.io/api/v2/market/getbysymbol/KRX_USDT` |
 | Câmbio USD→BRL | AwesomeAPI (via proxy próprio) | `GET /api/fx` → `economia.awesomeapi.com.br/json/last/USD-BRL` |
@@ -46,13 +46,12 @@ KRX/dia = (seu_hashrate ÷ hashrate_da_rede)
 Os proxies (`web/api/price.ts`, `web/api/fx.ts`) existem porque as APIs upstream bloqueiam
 CORS no browser; em dev o Vite tem middlewares equivalentes (`vite.config.ts`).
 
-**Por que média ~2h (client-side):** o instantâneo do `/info` oscila; uma média
-curta acompanha o regime sem o ruído pontual. **Não** confiar no label
-`period=` da API: em 2026-07-20 `period=1h` vinha vazio e `2h` ≡ `24h` com
-~18 h de pontos — média de todos os pontos (~23 GH/s) ficava bem abaixo do
-current (~33 GH/s). A implementação (`getEffectiveNetworkHashrate` em
-`keryx.ts`) busca o bucket `24h`, filtra `timestamp_ms ≥ Date.now() − 2h` e
-exige ≥ 3 pontos; senão cai no `/info`.
+**Hashrate da rede (seletor):** o usuário escolhe **current** (`hashrate_hps`
+do `/info`) ou **média** das últimas N horas (1–24). No modo média, busca o
+bucket `period=24h` e filtra `timestamp_ms ≥ Date.now() − N·h` no cliente —
+porque o label `period=` da API é inconsistente (`1h` vazio; `2h` ≡ `24h` com
+~18 h de pontos). Se houver menos de 3 pontos na janela, cai no current.
+Implementação: `getEffectiveNetworkHashrate(mode, hours)` em `keryx.ts`.
 
 ---
 

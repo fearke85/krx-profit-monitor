@@ -16,7 +16,7 @@ Deploy: Vercel Root Directory = `web` (static `dist` + serverless `api/price.ts`
 - **Data**: each browser keeps its own IndexedDB (`krx-profit-monitor`) — txs, price snapshots/history, meta (wallet).
 - **Sync**: client-side loop in `web/src/lib/sync.ts` (backfill → incremental → tx details), runs while the tab is open (`POLL_INTERVAL_MS` = 1min; also on visibility).
 - **APIs**:
-  - Keryx explorer — fetched **directly from the browser** (`access-control-allow-origin: *`). The calculator uses `/api/v1/hashrate-history?period=24h` as a point bucket, averages points with `timestamp_ms` in the last 2h (client-side), else `/api/v1/info` `hashrate_hps` + `block_reward_krx`; formula is explorer-first (no pool scale / paid-ratio factors).
+  - Keryx explorer — fetched **directly from the browser** (`access-control-allow-origin: *`). The calculator lets the user pick network hashrate: `/info` current, or client-side average of `/hashrate-history` points in the last 1–24h (bucket `period=24h`); also `block_reward_krx`. Formula is explorer-first (no pool scale / paid-ratio factors).
   - nonkyc price — **no CORS**; proxied via `GET /api/price` (Vercel serverless in prod, Vite middleware in dev).
 - **Address format**: `keryx:...` (bech32). Set via dashboard UI, persisted in IndexedDB. NOT in `.env`.
 - **Day closes** in `America/Sao_Paulo` via `Intl`.

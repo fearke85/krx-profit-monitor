@@ -18,6 +18,7 @@ import { currentPrice } from '../lib/dashboard';
 import { fmtKrx, fmtMoney, fmtNum, fmtPrice } from '../format';
 import { useSettings } from '../settings';
 import CalcCompareChart from './CalcCompareChart';
+import type { NetHashMode } from '../lib/calculator';
 const REFRESH_MS = 5 * 60_000;
 
 function fmtHashrate(hps: number): string {
@@ -83,8 +84,7 @@ export default function CalculatorPanel() {
   const { t } = useSettings();
   const [cfg, setCfg] = useState<CalcConfig | null>(null);
   const [net, setNet] = useState<NetworkInfo | null>(null);
-  /** Fonte do hashrate exibido: média 1h / 24h do history, ou instantâneo /info. */
-  const [hashSource, setHashSource] = useState<HashrateSource>('info');
+  const [hashSource, setHashSource] = useState<HashrateSource>({ mode: 'current' });
   const [priceUsd, setPriceUsd] = useState(0);
   const [usdBrl, setUsdBrl] = useState(0);
   const [compare, setCompare] = useState<CompareRow[]>([]);
@@ -95,21 +95,22 @@ export default function CalculatorPanel() {
     void loadCalcConfig().then((saved) => setCfg(saved ?? DEFAULT_CONFIG));
   }, []);
 
-  // Dados de rede/preço/câmbio — no mount e a cada 5 min.
+  // Dados de rede/preço/câmbio — no mount, ao mudar modo/janela e a cada 5 min.
   useEffect(() => {
+    if (!cfg) return;
     let cancelled = false;
     async function fetchData() {
       try {
         const [n, eff, p, fx] = await Promise.all([
           getNetworkInfo(),
-          getEffectiveNetworkHashrate(),
+          getEffectiveNetworkHashrate(cfg!.netHashMode, cfg!.netHashAvgHours),
           currentPrice(),
           getUsdBrl(),
         ]);
         if (cancelled) return;
         const hps = eff.hashrateHps > 0 ? eff.hashrateHps : n.hashrateHps;
         setNet({ ...n, hashrateHps: hps });
-        setHashSource(eff.hashrateHps > 0 ? eff.source : 'info');
+        setHashSource(eff.hashrateHps > 0 ? eff.source : { mode: 'current' });
         setPriceUsd(p);
         setUsdBrl(fx);
         setError(null);
@@ -123,7 +124,7 @@ export default function CalculatorPanel() {
       cancelled = true;
       clearInterval(id);
     };
-  }, []);
+  }, [cfg?.netHashMode, cfg?.netHashAvgHours]);
 
   const refreshCompare = () => void getComparison(30).then(setCompare);
   useEffect(refreshCompare, []);
@@ -172,6 +173,32 @@ export default function CalculatorPanel() {
               </select>
             </div>
           </label>
+
+          <label className="calc-field">
+            <span>{t('calc.netHash')}</span>
+            <div className="calc-inline">
+              <select
+                value={cfg.netHashMode}
+                onChange={(e) => set('netHashMode', e.target.value as NetHashMode)}
+              >
+                <option value="current">{t('calc.netHashCurrent')}</option>
+                <option value="avg">{t('calc.netHashAvg')}</option>
+              </select>
+              {cfg.netHashMode === 'avg' && (
+                <select
+                  value={cfg.netHashAvgHours}
+                  onChange={(e) => set('netHashAvgHours', Number(e.target.value))}
+                >
+                  {Array.from({ length: 24 }, (_, i) => i + 1).map((h) => (
+                    <option key={h} value={h}>
+                      {t('calc.netHashHours', { h })}
+                    </option>
+                  ))}
+                </select>
+              )}
+            </div>
+          </label>
+
           <label className="calc-field">
             <span>{t('calc.bracket')}</span>
             <select
@@ -326,13 +353,17 @@ export default function CalculatorPanel() {
             <p className="calc-meta">
               {t('calc.netMeta', {
                 hashrate: fmtHashrate(result.network.hashrateHps),
-                smoothed: hashSource === '2h' ? t('calc.netMetaSmoothed2h') : '',
+                smoothed:
+                  hashSource.mode === 'avg'
+                    ? t('calc.netMetaSmoothedAvg', { h: hashSource.hours })
+                    : t('calc.netMetaCurrent'),
                 reward: fmtKrx(result.network.blockRewardKrx),
                 price: fmtPrice(result.priceUsd),
               })}
               {cfg.currency === 'BRL' && result.usdBrl > 0 &&
                 t('calc.fxLabel', { rate: fmtNum(result.usdBrl, { maximumFractionDigits: 4 }) })}
-            </p>            <p className="calc-hint">{t('calc.disclaimer')}</p>
+            </p>
+            <p className="calc-hint">{t('calc.disclaimer')}</p>
           </>
         )}
       </div>

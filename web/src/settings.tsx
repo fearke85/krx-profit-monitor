@@ -89,6 +89,10 @@ const DICT: Record<Lang, Record<string, string>> = {
     'calc.intro':
       'Estime a produção de KRX e o lucro a partir do seu hashrate. O cálculo usa hashrate e recompensa de bloco do explorer Keryx Labs e o preço KRX/USDT da nonkyc.',
     'calc.hashrate': 'Hashrate',
+    'calc.netHash': 'Hashrate da rede',
+    'calc.netHashCurrent': 'current',
+    'calc.netHashAvg': 'média',
+    'calc.netHashHours': '{h}h',
     'calc.bracket': 'Bracket (holder reward)',
     'calc.bracketOpt': 'Bracket {id} · {req} produção diária · {pct}%',
     'calc.bracketHint':
@@ -116,7 +120,8 @@ const DICT: Record<Lang, Record<string, string>> = {
     'calc.periodMonth': 'Mês (30d)',
     'calc.netMeta':
       'Rede (Keryx Labs): {hashrate}{smoothed} · 10 blocos/s · Recompensa/bloco: {reward} KRX · Preço: {price} USDT (nonkyc)',
-    'calc.netMetaSmoothed2h': ' (média ~2h)',
+    'calc.netMetaCurrent': ' (atual)',
+    'calc.netMetaSmoothedAvg': ' (média ~{h}h)',
     'calc.fxLabel': ' · USD/BRL: {rate}',
     'calc.disclaimer':
       'Estimativa explorer-first: assume hashrate da rede, bracket e preço constantes. A produção real varia com a sorte e as condições da rede. Estimativas de pool servem só para comparação.',
@@ -207,6 +212,10 @@ const DICT: Record<Lang, Record<string, string>> = {
     'calc.intro':
       'Estimate KRX production and profit from your hashrate. It uses network hashrate and block reward from the Keryx Labs explorer and the KRX/USDT price from nonkyc.',
     'calc.hashrate': 'Hashrate',
+    'calc.netHash': 'Network hashrate',
+    'calc.netHashCurrent': 'current',
+    'calc.netHashAvg': 'average',
+    'calc.netHashHours': '{h}h',
     'calc.bracket': 'Bracket (holder reward)',
     'calc.bracketOpt': 'Bracket {id} · {req} daily production · {pct}%',
     'calc.bracketHint':
@@ -234,7 +243,8 @@ const DICT: Record<Lang, Record<string, string>> = {
     'calc.periodMonth': 'Month (30d)',
     'calc.netMeta':
       'Network (Keryx Labs): {hashrate}{smoothed} · 10 blocks/s · Reward/block: {reward} KRX · Price: {price} USDT (nonkyc)',
-    'calc.netMetaSmoothed2h': ' (~2h avg)',
+    'calc.netMetaCurrent': ' (current)',
+    'calc.netMetaSmoothedAvg': ' (~{h}h avg)',
     'calc.fxLabel': ' · USD/BRL: {rate}',
     'calc.disclaimer':
       'Explorer-first estimate: assumes constant network hashrate, bracket and price. Actual production varies with luck and network conditions. Pool estimates are for comparison only.',
@@ -265,7 +275,7 @@ function readStored<T extends string>(key: string, allowed: readonly T[], fallba
 }
 
 export function SettingsProvider({ children }: { children: ReactNode }) {
-  const [lang, setLangState] = useState<Lang>(() => readStored('krx.lang', ['pt', 'en'] as const, 'pt'));
+  const [lang, setLangState] = useState<Lang>(() => readStored('krx.lang', ['pt', 'en'] as const, 'en'));
   const [theme, setThemeState] = useState<Theme>(() =>
     readStored('krx.theme', ['dark', 'light'] as const, 'dark'),
   );

@@ -154,40 +154,49 @@ export interface NetworkInfo {
   network: string;
 }
 
-/** Janela real de média (client-side). O `period=` da API não é confiável. */
-const HASHRATE_WINDOW_MS = 2 * 60 * 60 * 1000;
 const HASHRATE_MIN_POINTS = 3;
 
-export type HashrateSource = '2h' | 'info';
+export type HashrateSource =
+  | { mode: 'current' }
+  | { mode: 'avg'; hours: number };
 
 /**
  * Hashrate efetivo para a calculadora.
  *
- * Busca `/hashrate-history?period=24h` só como bucket de pontos (o label
- * `period` da API é inconsistente: `1h` vem vazio; `2h` ≡ `24h` com ~18h de
- * dados). Filtra no cliente `timestamp_ms >= now − 2h` e tira a média.
- * Se houver menos de 3 pontos na janela, retorna 0 → o chamador usa
- * `hashrate_hps` do `/info` (current).
+ * - `current`: retorna 0 → o chamador usa `hashrate_hps` do `/info`.
+ * - `avg`: busca `/hashrate-history?period=24h` como bucket e filtra no
+ *   cliente `timestamp_ms >= now − hours` (o label `period=` da API não é
+ *   confiável). Se houver menos de 3 pontos, cai no current.
  */
-export async function getEffectiveNetworkHashrate(): Promise<{
+export async function getEffectiveNetworkHashrate(
+  mode: 'current' | 'avg' = 'current',
+  hours = 2,
+): Promise<{
   hashrateHps: number;
   source: HashrateSource;
 }> {
+  if (mode !== 'avg') {
+    return { hashrateHps: 0, source: { mode: 'current' } };
+  }
+  const windowHours = Math.min(24, Math.max(1, Math.round(hours)));
   try {
     const data = await fetchJson<{
       points?: Array<{ hashrate_hps: number; timestamp_ms: number }>;
     }>(`${KERYX_API}/hashrate-history?period=24h`);
-    const cutoff = Date.now() - HASHRATE_WINDOW_MS;
+    const cutoff = Date.now() - windowHours * 60 * 60 * 1000;
     const recent = (data.points ?? []).filter(
       (p) => p.hashrate_hps > 0 && p.timestamp_ms >= cutoff,
     );
     if (recent.length < HASHRATE_MIN_POINTS) {
-      return { hashrateHps: 0, source: 'info' };
+      return { hashrateHps: 0, source: { mode: 'current' } };
     }
     const sum = recent.reduce((a, p) => a + p.hashrate_hps, 0);
-    return { hashrateHps: sum / recent.length, source: '2h' };
+    return {
+      hashrateHps: sum / recent.length,
+      source: { mode: 'avg', hours: windowHours },
+    };
   } catch {
-    return { hashrateHps: 0, source: 'info' };
+    return { hashrateHps: 0, source: { mode: 'current' } };
   }
 }
 

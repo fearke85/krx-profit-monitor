@@ -19,6 +19,10 @@ import { currentPrice } from './dashboard';
 export const BLOCKS_PER_DAY = 864_000;
 
 export type Currency = 'USD' | 'BRL';
+
+/** Fonte do hashrate da rede na calculadora. */
+export type NetHashMode = 'current' | 'avg';
+
 export interface HashUnit {
   key: string;
   mult: number;
@@ -70,6 +74,10 @@ export interface CalcConfig {
   kwhCost: number;
   /** consumo do rig em watts */
   powerW: number;
+  /** current = /info instantâneo; avg = média client-side das últimas N horas */
+  netHashMode: NetHashMode;
+  /** Janela da média (1–24), só usada quando netHashMode === 'avg' */
+  netHashAvgHours: number;
 }
 
 export const DEFAULT_CONFIG: CalcConfig = {
@@ -83,9 +91,17 @@ export const DEFAULT_CONFIG: CalcConfig = {
   currency: 'USD',
   kwhCost: 0.1,
   powerW: 100,
+  netHashMode: 'current',
+  netHashAvgHours: 2,
 };
 
 const CONFIG_KEY = 'calc_config';
+
+function clampAvgHours(n: unknown): number {
+  const v = typeof n === 'number' ? n : Number(n);
+  if (!Number.isFinite(v)) return DEFAULT_CONFIG.netHashAvgHours;
+  return Math.min(24, Math.max(1, Math.round(v)));
+}
 
 export async function loadCalcConfig(): Promise<CalcConfig | null> {
   const raw = await getMeta(CONFIG_KEY);
@@ -94,7 +110,10 @@ export async function loadCalcConfig(): Promise<CalcConfig | null> {
     // Descarta campos legados (hashScale / escala pool→nó) de configs antigas.
     const parsed = JSON.parse(raw) as Partial<CalcConfig> & { hashScale?: unknown };
     const { hashScale: _legacy, ...rest } = parsed;
-    return { ...DEFAULT_CONFIG, ...rest };
+    const merged: CalcConfig = { ...DEFAULT_CONFIG, ...rest };
+    merged.netHashMode = rest.netHashMode === 'avg' ? 'avg' : 'current';
+    merged.netHashAvgHours = clampAvgHours(rest.netHashAvgHours ?? merged.netHashAvgHours);
+    return merged;
   } catch {
     return null;
   }
@@ -220,7 +239,7 @@ export async function snapshotTodayIfConfigured(): Promise<void> {
     if (!cfg) return;
     const [net, eff, priceUsd] = await Promise.all([
       getNetworkInfo(),
-      getEffectiveNetworkHashrate(),
+      getEffectiveNetworkHashrate(cfg.netHashMode, cfg.netHashAvgHours),
       currentPrice(),
     ]);
     const effNet = { ...net, hashrateHps: eff.hashrateHps > 0 ? eff.hashrateHps : net.hashrateHps };
